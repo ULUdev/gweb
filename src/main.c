@@ -6,9 +6,23 @@
 #include "log.h"
 #include "string.h"
 
+// library version
 #define GWEB_VERSION 1
+
+// version string for commandline and packaging purposes
 #define GWEB_VERSION_STR "1.0.0"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
+
+const char *GWEB_HELP_STR = "\n"
+"SYNOPSIS\n"
+"  gweb -[Vvh]\n\n"
+"OPTIONS\n"
+"  -h,--help: print this help and exit\n"
+"  -V,--version: print the version and exit\n"
+"  -v,--verbose: verbose logging\n"
+"  -vv,--vverbose: more verbose logging\n"
+"  --nojs: disable javascript\n"
+"  --nodev: disable developer tools\n\n";
 
 int main(int argc, char **argv) {
 	gweb_log_level verbosity = GWEB_LOG_ERR;
@@ -30,6 +44,9 @@ int main(int argc, char **argv) {
 			javascript = false;
 		} else if (streq(argv[i], "--nodev")) {
 			dev_tools = false;
+		} else if (streq(argv[i], "-h") || streq(argv[i], "--help")) {
+			fprintf(stderr, GWEB_HELP_STR);
+			exit(0);
 		}
 	}
 	GtkWidget *window, *notebook;
