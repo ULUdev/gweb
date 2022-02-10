@@ -25,6 +25,7 @@ struct GwebLoadChangedUdata {
 	GtkEntry *entry;
 	GtkBox *box;
 	WebKitWebView *webview;
+	GtkLabel *label;
 };
 
 struct GwebWebviewSettings {
@@ -37,6 +38,24 @@ struct GwebAddTabBtnData {
 	gweb_webview_settings_t *settings;
 };
 
+struct TabRemoveData {
+	GtkNotebook *notebook;
+	gweb_tabs_t *tabs;
+	int tabid;
+};
+
+void gweb_remove_tab_callback(GtkButton *btn, struct TabRemoveData *user_data) {
+	assert(user_data != NULL);
+	assert(user_data->notebook != NULL);
+	assert(user_data->tabs != NULL);
+	assert(user_data->tabid != -1);
+	char str[100];
+	sprintf(str, "removing tab with id %d", user_data->tabid);
+	gweb_log(user_data->tabs->logger, str, GWEB_LOG_MSG);
+	gweb_remove_tab(user_data->tabs, user_data->notebook, user_data->tabid);
+	free(user_data);
+}
+
 typedef struct GwebLoadChangedUdata gweb_lc_udata;
 
 void gweb_handle_load_changed(WebKitWebView *web_view, WebKitLoadEvent load_event, gweb_lc_udata *user_data) {
@@ -44,8 +63,10 @@ void gweb_handle_load_changed(WebKitWebView *web_view, WebKitLoadEvent load_even
 	assert(user_data->notebook != NULL);
 	assert(user_data->entry != NULL);
 	assert(user_data->box != NULL);
-	gtk_notebook_set_tab_label_text(user_data->notebook, GTK_WIDGET(user_data->box), webkit_web_view_get_title(web_view));
+	assert(user_data->label != NULL);
 	gtk_entry_set_text(user_data->entry, webkit_web_view_get_uri(web_view));
+
+	gtk_label_set_label(user_data->label, webkit_web_view_get_title(web_view));
 }
 
 gweb_tabs_t *gweb_tabs_new(gweb_logger *logger) {
@@ -76,7 +97,7 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
 }
 
 void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webview_settings_t *settings) {
-	GtkWidget *webview, *label, *box, *entry;
+	GtkWidget *webview, *label, *box, *entry, *tab_box, *tab_closebtn;
 	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 
 	webview = webkit_web_view_new();
@@ -88,12 +109,19 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(entry), false, false, 0);
 	gtk_box_pack_end(GTK_BOX(box), GTK_WIDGET(webview), true, true, 0);
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
-	label = gtk_label_new(webkit_web_view_get_title(WEBKIT_WEB_VIEW(webview)));
+	label = gtk_label_new("New Tab");
+
+	tab_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	tab_closebtn = gtk_button_new_from_icon_name("tab-close", GTK_ICON_SIZE_BUTTON);
+	gtk_box_pack_start(GTK_BOX(tab_box), GTK_WIDGET(label), true, true, 0);
+	gtk_box_pack_end(GTK_BOX(tab_box), GTK_WIDGET(tab_closebtn), false, false, 0);
+
 	gweb_lc_udata *data = malloc(sizeof(gweb_lc_udata));
 	data->notebook = GTK_NOTEBOOK(notebook);
 	data->entry = GTK_ENTRY(entry);
 	data->box = GTK_BOX(box);
 	data->webview = WEBKIT_WEB_VIEW(webview);
+	data->label = label;
 
 	gweb_tab_t *new = malloc(sizeof(gweb_tab_t));
 	new->data = data;
@@ -111,17 +139,28 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 	tabs->count++;
 	g_signal_connect(G_OBJECT(webview), "load-changed", G_CALLBACK(gweb_handle_load_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(gweb_entry_enter), data);
-	int res = gtk_notebook_append_page(notebook, GTK_WIDGET(box), GTK_WIDGET(label));
+	int res = gtk_notebook_append_page(notebook, GTK_WIDGET(box), GTK_WIDGET(tab_box));
 	if (res == -1) {
 		gweb_log(tabs->logger, "error creating tab", GWEB_LOG_ERR);
 	} else {
-		gweb_log(tabs->logger, "created tab", GWEB_LOG_MSG);
+		char str[100];
+		sprintf(str, "created tab with id %d", res);
+		gweb_log(tabs->logger, str, GWEB_LOG_MSG);
 	}
+	struct TabRemoveData *tab_remove_data = malloc(sizeof(struct TabRemoveData));
+	tab_remove_data->notebook = GTK_NOTEBOOK(notebook);
+	tab_remove_data->tabs = tabs;
+	tab_remove_data->tabid = res;
+	g_signal_connect(G_OBJECT(tab_closebtn), "clicked", G_CALLBACK(gweb_remove_tab_callback), tab_remove_data);
 	gtk_widget_show_all(box);
+	gtk_widget_show_all(tab_box);
 }
 
 void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
 	if (tabs->count == 0) {
+		return;
+	} else if (tabs->count == 1) {
+		gtk_main_quit();
 		return;
 	}
 	gweb_tab_t *prev = NULL;
@@ -139,7 +178,7 @@ void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
 	free(cur);
 
 	tabs->count--;
-	gtk_notebook_remove_page(GTK_NOTEBOOK(notebook), page_num);
+	gtk_notebook_remove_page(notebook, page_num);
 }
 
 void gweb_tabs_destroy(gweb_tabs_t *tabs) {
@@ -157,7 +196,7 @@ void gweb_tabs_destroy(gweb_tabs_t *tabs) {
 void gweb_add_tab_button_callback(GtkButton *button, gweb_add_tab_btn_data_t *data) {
 	assert(data != NULL);
 	assert(data->notebook != NULL);
-	assert(data->tabs != NULL);
+	assert(data->tabs != -1);
 	gweb_add_tab(data->notebook, data->tabs, "about:blank", data->settings);
 }
 

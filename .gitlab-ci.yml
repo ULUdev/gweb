@@ -13,9 +13,6 @@ build:
   stage: build
   script:
     - make -B
-  artifacts:
-    paths:
-      - gweb
   tags:
     - x86_64
 
