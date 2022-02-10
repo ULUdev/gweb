@@ -1,0 +1,27 @@
+image: gcc
+
+before_script:
+  - apt-get update
+  - apt-get install libgtk-3-dev -y
+  - apt-get install libwebkit2gtk-4.0-dev -y
+
+cache:
+  paths:
+    - gweb
+
+build:
+  stage: build
+  script:
+    - make -B
+  artifacts:
+    paths:
+      - gweb
+  tags:
+    - x86_64
+
+test:
+  stage: test
+  script:
+    - ./test.sh
+  tags:
+    - x86_64
