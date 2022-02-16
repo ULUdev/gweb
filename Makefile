@@ -16,7 +16,10 @@ lib/linked_list.o:
 	mv linked_list/linked_list.o lib/linked_list.o
 
 install: gweb
+	mkdir -p $(PREFIX)/share/pixmaps $(PREFIX)/share/applications
 	mv $< $(PREFIX)/bin/$<
+	cp gweb.desktop $(PREFIX)/share/applications/gweb.desktop
+	cp gweb.png $(PREFIX)/share/pixmaps/gweb.png
 
 clean:
 	rm -rf gweb lib $(wildcard src/*.o) gweb.o

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=Gweb
+Type=Application
+GenericName=Web Browser
+Comment=Browse the World Wide Web
+Exec=/usr/local/bin/gweb %u
+Icon=gweb
