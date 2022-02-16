@@ -1,5 +1,7 @@
 #include <string.h>
 #include "string.h"
+#include <stdlib.h>
+#include "linked_list/linked_list.h"
 
 // returns 0 if the strings are equal and 1 if they are different
 int gweb_streq(char *s1, char *s2) {
@@ -28,4 +30,39 @@ int gweb_strstartswith(char *s1, char *s2) {
 		}
 	}
 	return startswith;
+}
+
+char *gweb_get_homedir() {
+#if _WIN32
+	// windows is not implemented
+	abort();
+#else
+	// assuming unix based distribution that sets $HOME
+	return getenv("HOME");
+#endif
+}
+
+linked_list_t *gweb_strsplit(const char *str, const char sep) {
+	char *buffer = malloc(strlen(str));
+	strcpy(buffer, "");
+	linked_list_t *list = linked_list_new();
+	for (int i=0;i<strlen(str);i++) {
+		if (str[i] == sep) {
+			char *current = malloc(strlen(buffer) + 1);
+			strcpy(current, buffer);
+			linked_list_push(list, current);
+			strcpy(buffer, "");
+		} else {
+			char *tmp = malloc(2);
+			tmp[0] = str[i];
+			tmp[1] = '\0';
+			buffer = strcat(buffer, tmp);
+			free(tmp);
+		}
+	}
+	if (linked_list_size(list) == 0) {
+		linked_list_push(list, str);
+	}
+	free(buffer);
+	return list;
 }

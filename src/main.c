@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
 	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 	gtk_container_add(GTK_CONTAINER(window), notebook);
 	
+	// GtkAccelGroup *accels = gtk_accel_group_new();
+	// gtk_accel_group_connect(accels, gdk_keyval_from_name("t"), GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, G_CLOSURE())
 	gtk_widget_show_all(window);
 	gtk_widget_show(add_tab);
 	gtk_main();

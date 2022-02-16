@@ -6,8 +6,10 @@
 #include "string.h"
 #include <string.h>
 #include <stdbool.h>
+#include "file.h"
 
 #define strstartswith(s1, s2) (gweb_strstartswith(s1, s2) == 0)
+#define GWEB_NEW_TAB "New Tab"
 
 typedef struct GwebTab {
 	void *data;
@@ -66,7 +68,33 @@ void gweb_handle_load_changed(WebKitWebView *web_view, WebKitLoadEvent load_even
 	assert(user_data->label != NULL);
 	gtk_entry_set_text(user_data->entry, webkit_web_view_get_uri(web_view));
 
-	gtk_label_set_label(user_data->label, webkit_web_view_get_title(web_view));
+	if (load_event == WEBKIT_LOAD_FINISHED) {
+		char *title = webkit_web_view_get_title(web_view);
+		if (title == NULL) {
+			title = malloc(strlen(GWEB_NEW_TAB) +1);
+			strcpy(title, GWEB_NEW_TAB);
+		} else {
+			title = malloc(strlen(title) + 1);
+			char *tmp = webkit_web_view_get_title(web_view);
+			strcpy(title, tmp);
+		}
+		if (strlen(title) > 23) {
+			char *new_title = malloc(24);
+			for (int i=0;i<20;i++) {
+				new_title[i] = title[i];
+			}
+			free(title);
+			// add three dots and a null terminator
+			new_title[19] = '.';
+			new_title[20] = '.';
+			new_title[21] = '.';
+			new_title[22] = '\0';
+			title = new_title;
+		}
+		gtk_label_set_label(user_data->label, title);
+		// gtk_label_set_label(user_data->label, webkit_web_view_get_title(web_view));
+		free(title);
+	}
 }
 
 gweb_tabs_t *gweb_tabs_new(gweb_logger *logger) {
@@ -109,7 +137,7 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(entry), false, false, 0);
 	gtk_box_pack_end(GTK_BOX(box), GTK_WIDGET(webview), true, true, 0);
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
-	label = gtk_label_new("New Tab");
+	label = gtk_label_new(GWEB_NEW_TAB);
 
 	tab_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	tab_closebtn = gtk_button_new_from_icon_name("tab-close", GTK_ICON_SIZE_BUTTON);
@@ -137,6 +165,13 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 	}
 
 	tabs->count++;
+	
+	// WebKitWebContext *ctx = webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
+	// WebKitCookieManager *cookie_man = webkit_web_context_get_cookie_manager(ctx);
+	// char *cookiefile = gweb_cookie_file();
+	// webkit_cookie_manager_set_persistent_storage(cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+	// free(cookiefile);
+
 	g_signal_connect(G_OBJECT(webview), "load-changed", G_CALLBACK(gweb_handle_load_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(gweb_entry_enter), data);
 	int res = gtk_notebook_append_page(notebook, GTK_WIDGET(box), GTK_WIDGET(tab_box));

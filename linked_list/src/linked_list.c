@@ -1,5 +1,6 @@
 #include "linked_list.h"
 #include <stdlib.h>
+#include <stddef.h>
 
 struct LinkedListNode {
 	void *val;
@@ -23,14 +24,23 @@ void linked_list_push(linked_list_t *list, void *val) {
 	new->val = val;
 	new->next = list->head;
 	list->head = new;
+	list->size++;
 }
 
 void *linked_list_pop(linked_list_t *list) {
+	if (list->head == NULL) {
+		return NULL;
+	}
 	linked_list_node_t *current = list->head;
 	list->head = current->next;
 	void *val = current->val;
 	free(current);
+	list->size--;
 	return val;
+}
+
+size_t linked_list_size(linked_list_t *list) {
+	return list->size;
 }
 
 void linked_list_destroy(linked_list_t *list) {
@@ -41,4 +51,14 @@ void linked_list_destroy(linked_list_t *list) {
 		current = next;
 	}
 	free(list);
+}
+void linked_list_reverse(linked_list_t *list) {
+	linked_list_node_t *prev = NULL;
+	linked_list_node_t *next;
+	while (list->head) {
+		next = list->head->next;
+		list->head->next = prev;
+		prev = list->head;
+		list->head = next;
+	}
 }

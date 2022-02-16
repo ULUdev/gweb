@@ -2,7 +2,6 @@ PREFIX = /usr/local
 CC = gcc
 CFLAGS = -Wall -Iinclude `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -ggdb
 SRC = $(wildcard src/*.c)
-OBJS = $(SRC:.c=.o)
 
 all: gweb
 

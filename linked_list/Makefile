@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -Wall -Iinclude -o linked_list.o
+CFLAGS = -c -Wall -Iinclude -o linked_list.o -ggdb
 SRC = $(wildcard src/*.c)
 
 all: linked_list.o
