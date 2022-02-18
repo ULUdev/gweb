@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="gweb.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.73228114"
+     inkscape:cx="385.78079"
+     inkscape:cy="670.5075"
+     inkscape:window-width="1876"
+     inkscape:window-height="1018"
+     inkscape:window-x="20"
+     inkscape:window-y="38"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="195.13183"
+       y="286.24967"
+       width="121.12286"
+       height="90.857708"
+       id="rect13060" />
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#7aa6da;stroke-width:0.264583;fill-opacity:1"
+       id="rect10856"
+       width="65.274147"
+       height="65.274147"
+       x="72.36293"
+       y="115.86293"
+       ry="18.891911"
+       inkscape:export-filename="/home/moritz/Code/C/gweb/gweb.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,39.48307,67.01792)"
+       id="text13058"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect13060);fill:#000000;fill-opacity:1;stroke:none"
+       inkscape:export-filename="/home/moritz/Code/C/gweb/gweb.png"
+       inkscape:export-xdpi="200"
+       inkscape:export-ydpi="200"><tspan
+         x="195.13281"
+         y="322.28018"
+         id="tspan19755">Gweb
+</tspan></text>
+  </g>
+</svg>

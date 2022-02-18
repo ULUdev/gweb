@@ -1,6 +1,7 @@
 #include "linked_list.h"
 #include <stdlib.h>
 #include <stddef.h>
+#include <assert.h>
 
 struct LinkedListNode {
 	void *val;
@@ -28,13 +29,15 @@ void linked_list_push(linked_list_t *list, void *val) {
 }
 
 void *linked_list_pop(linked_list_t *list) {
-	if (list->head == NULL) {
+	assert(list);
+	if (list->size == 0) {
 		return NULL;
 	}
-	linked_list_node_t *current = list->head;
-	list->head = current->next;
-	void *val = current->val;
-	free(current);
+	assert(list->head);
+	void *val = list->head->val;
+	linked_list_node_t *old = list->head;
+	list->head = list->head->next;
+	free(old);
 	list->size--;
 	return val;
 }
@@ -53,12 +56,24 @@ void linked_list_destroy(linked_list_t *list) {
 	free(list);
 }
 void linked_list_reverse(linked_list_t *list) {
-	linked_list_node_t *prev = NULL;
-	linked_list_node_t *next;
-	while (list->head) {
-		next = list->head->next;
-		list->head->next = prev;
-		prev = list->head;
-		list->head = next;
+	linked_list_t *reversed = linked_list_new();
+	void *data = linked_list_pop(list);
+	while (data) {
+		linked_list_push(reversed, data);
+		data = linked_list_pop(list);
 	}
+	linked_list_destroy(list);
+	list = reversed;
+}
+
+linked_list_t *linked_list_dup(const linked_list_t *list) {
+	linked_list_t *new = linked_list_new();
+	linked_list_node_t *cur = list->head;
+	while(cur) {
+		linked_list_node_t *val = malloc(sizeof(linked_list_node_t));
+		memcpy(val, cur, sizeof(linked_list_node_t));
+		linked_list_push(new, val);
+		cur = cur->next;
+	}
+	return new;
 }

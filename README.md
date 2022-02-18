@@ -2,7 +2,8 @@
 ## a simple browser written in C
 [![pipeline status](https://gitlab.sokoll.com/moritz/gweb/badges/main/pipeline.svg)](https://gitlab.sokoll.com/moritz/gweb/-/commits/main)
 ## Installation
-Just run `make install`. If you want to change the prefix edit the `Makefile`.
+If you want to adjust the prefix use `./configure.sh -p <prefix>`
+Just run `make install`. If you want to change other build settings edit the `Makefile`
 
 ## Usage
 Simply running `gweb` will start the browser. Currently the options are:

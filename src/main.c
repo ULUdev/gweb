@@ -4,14 +4,14 @@
 #include <stdbool.h>
 #include "tabbing.h"
 #include "log.h"
-#include "string.h"
+#include "gweb_string.h"
 #include "linked_list/linked_list.h"
 
 // library version
 #define GWEB_VERSION 1
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.0.0"
+#define GWEB_VERSION_STR "1.0.3"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR = "\n"

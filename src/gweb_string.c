@@ -1,7 +1,8 @@
 #include <string.h>
-#include "string.h"
+#include "gweb_string.h"
 #include <stdlib.h>
 #include "linked_list/linked_list.h"
+#include <stdio.h>
 
 // returns 0 if the strings are equal and 1 if they are different
 int gweb_streq(char *s1, char *s2) {
@@ -43,26 +44,37 @@ char *gweb_get_homedir() {
 }
 
 linked_list_t *gweb_strsplit(const char *str, const char sep) {
+
+	// create a buffer for storing the current substring until `sep`
 	char *buffer = malloc(strlen(str));
 	strcpy(buffer, "");
+
+	// create an output linked list
 	linked_list_t *list = linked_list_new();
-	for (int i=0;i<strlen(str);i++) {
-		if (str[i] == sep) {
-			char *current = malloc(strlen(buffer) + 1);
-			strcpy(current, buffer);
-			linked_list_push(list, current);
+	for (size_t i=0;i<strlen(str);i++) {
+		// filter empty buffer
+		if(str[i] == sep) {
+			if (strlen(buffer) == 0) {
+				continue;
+			}
+			printf("buffer: %s\n", buffer); // DEBUG
+			// add a copy of buffer to the list
+			linked_list_push(list, strdup(buffer));
+
+			// reset the buffer
 			strcpy(buffer, "");
 		} else {
-			char *tmp = malloc(2);
+			char tmp[2];
 			tmp[0] = str[i];
 			tmp[1] = '\0';
-			buffer = strcat(buffer, tmp);
-			free(tmp);
+			// add the current character to the buffer
+			strcpy(buffer, strcat(buffer, tmp));
 		}
 	}
-	if (linked_list_size(list) == 0) {
-		linked_list_push(list, str);
+	if (strlen(buffer) > 0) {
+		linked_list_push(list, strdup(buffer));
 	}
 	free(buffer);
+
 	return list;
 }

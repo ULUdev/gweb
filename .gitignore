@@ -4,3 +4,4 @@ compilelog.txt
 lib
 include/linked_list
 *.o
+aur

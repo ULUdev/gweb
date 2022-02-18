@@ -3,7 +3,7 @@
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 #include <assert.h>
-#include "string.h"
+#include "gweb_string.h"
 #include <string.h>
 #include <stdbool.h>
 #include "file.h"
@@ -149,7 +149,7 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 	data->entry = GTK_ENTRY(entry);
 	data->box = GTK_BOX(box);
 	data->webview = WEBKIT_WEB_VIEW(webview);
-	data->label = label;
+	data->label = GTK_LABEL(label);
 
 	gweb_tab_t *new = malloc(sizeof(gweb_tab_t));
 	new->data = data;
@@ -166,11 +166,11 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webv
 
 	tabs->count++;
 	
-	// WebKitWebContext *ctx = webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
-	// WebKitCookieManager *cookie_man = webkit_web_context_get_cookie_manager(ctx);
-	// char *cookiefile = gweb_cookie_file();
-	// webkit_cookie_manager_set_persistent_storage(cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
-	// free(cookiefile);
+	WebKitWebContext *ctx = webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
+	WebKitCookieManager *cookie_man = webkit_web_context_get_cookie_manager(ctx);
+	char *cookiefile = gweb_cookie_file();
+	webkit_cookie_manager_set_persistent_storage(cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+	free(cookiefile);
 
 	g_signal_connect(G_OBJECT(webview), "load-changed", G_CALLBACK(gweb_handle_load_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(gweb_entry_enter), data);
@@ -208,7 +208,13 @@ void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
 			cur = cur->next;
 		}
 	}
-	prev->next = cur->next;
+	// attempting to remove the first page would cause a segfault normally if
+	// you try to set the previos next pointer to the current next pointer
+	if (prev == NULL) {
+		tabs->head = tabs->head->next;
+	} else {
+		prev->next = cur->next;
+	}
 	free(cur->data);
 	free(cur);
 
@@ -231,7 +237,7 @@ void gweb_tabs_destroy(gweb_tabs_t *tabs) {
 void gweb_add_tab_button_callback(GtkButton *button, gweb_add_tab_btn_data_t *data) {
 	assert(data != NULL);
 	assert(data->notebook != NULL);
-	assert(data->tabs != -1);
+	assert(data->tabs != NULL);
 	gweb_add_tab(data->notebook, data->tabs, "about:blank", data->settings);
 }
 

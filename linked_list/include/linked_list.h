@@ -11,4 +11,5 @@ size_t linked_list_size(linked_list_t *list);
 void linked_list_reverse(linked_list_t *list);
 
 void linked_list_destroy(linked_list_t *list);
+linked_list_t *linked_list_dup(const linked_list_t *list);
 #endif
