@@ -1,7 +1,9 @@
 PREFIX = /usr/local
 CC = gcc
-CFLAGS = -std=c18 -Wall -Iinclude `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -O3
+CFLAGS = -std=c18 -Wall -Iinclude `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -ggdb
 SRC = $(wildcard src/*.c)
+FMT = clang-format
+FMTFLAGS = -i
 
 all: gweb
 
@@ -23,3 +25,6 @@ install: gweb
 
 clean:
 	rm -rf gweb lib $(wildcard src/*.o) gweb.o
+
+format: $(SRC)
+	$(FMT) $(FMTFLAGS) $^

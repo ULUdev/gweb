@@ -20,12 +20,13 @@ SYNOPSIS
 OPTIONS
   -h: print this help and exit
   -p <prefix>: set the prefix to <prefix>
+  -g: prepare repository to a git state and exit. (format code)
 " >&2
 }
 
 main() {
 	local opts;
-	while getopts "hp:" opts; do
+	while getopts "hgp:" opts; do
 		case $opts in
 			h)
 				print_help
@@ -33,6 +34,10 @@ main() {
 				;;
 			p)
 				set_prefix "$OPTARG"
+				;;
+			g)
+				make format
+				exit 0
 				;;
 		esac
 	done
