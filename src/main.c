@@ -11,7 +11,7 @@
 #define GWEB_VERSION 1
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.0.3"
+#define GWEB_VERSION_STR "1.1.3"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR = "\n"
@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
     linked_list_destroy(urls);
     GtkWidget *add_tab =
         gtk_button_new_from_icon_name("add", GTK_ICON_SIZE_BUTTON);
+    gtk_widget_set_tooltip_text(add_tab, "Add a new tab");
     gweb_log(logger, "generating data for tab handling", GWEB_LOG_MSG);
     gweb_add_tab_btn_data_t *data =
         gweb_gen_data(GTK_NOTEBOOK(notebook), tabs, websettings);
