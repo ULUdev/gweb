@@ -134,20 +134,38 @@ gweb_tabs_t *gweb_tabs_new(gweb_logger *logger) {
 }
 
 void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
+
     assert(user_data != NULL);
     assert(user_data->notebook != NULL);
     assert(user_data->entry != NULL);
     assert(user_data->tab_widget != NULL);
     assert(user_data->webview != NULL);
+
     char *uri = malloc(strlen(gtk_entry_get_text(entry)));
     strcpy(uri, gtk_entry_get_text(entry));
+
     if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://")) {
-        uri = realloc(uri, strlen(uri) + 7 + 1);
-        char *tmp = malloc(strlen(uri) + 7 + 1);
-        strcpy(tmp, "http://");
-        uri = strcat(tmp, uri);
-        // free(tmp);
+
+		// dot in query. Probably a URL
+		if (strchr(uri, '.')) {
+			uri = realloc(uri, strlen(uri) + 7 + 1);
+        	char *tmp = malloc(strlen(uri) + 7 + 1);
+        	strcpy(tmp, "http://");
+        	uri = strcat(tmp, uri);
+		} else {
+			/* 
+			 * treat as search
+			 * append the query to a search url (default 'http://duckduckgo.com/?q=')
+			 * so 'example' becomes 'http://duckduckgo.com/?q=example'
+			 */
+			char *query = malloc(strlen(uri) + strlen(GWEB_SEARCH_QUERY) + 1);
+			strcpy(query, GWEB_SEARCH_QUERY);
+			query = strcat(query, uri);
+			free(uri);
+			uri = query;
+		}
     }
+
     webkit_web_view_load_uri(user_data->webview, uri);
     free(uri);
 }
@@ -277,7 +295,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
                                        GTK_WIDGET(tab_box));
     if (res == -1) {
         gweb_log(tabs->logger, "error creating tab", GWEB_LOG_ERR);
-        return;
+		return NULL;
     } else {
 
         // get the exact size required
@@ -302,6 +320,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
     gtk_widget_show_all(tab_box);
 
     gtk_notebook_set_current_page(notebook, res);
+	gtk_widget_grab_focus(GTK_WIDGET(entry));
     return webview;
 }
 
@@ -379,4 +398,21 @@ gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript) {
 
 void gweb_settings_destroy(gweb_webview_settings_t *settings) {
     free(settings);
+}
+
+void gweb_webview_handle_terminated(WebKitWebView *web_view, WebKitWebProcessTerminationReason reason, gweb_tabs_t *tabs) {
+	assert(tabs);
+	assert(tabs->logger);
+	gweb_logger *logger = tabs->logger;
+	switch (reason) {
+		case WEBKIT_WEB_PROCESS_CRASHED:
+			gweb_log(logger, "web process has crashed", GWEB_LOG_ERR);
+			break;
+		case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
+			gweb_log(logger, "web process has exceeded its memory limit", GWEB_LOG_ERR);
+			break;
+		case WEBKIT_WEB_PROCESS_TERMINATED_BY_API:
+			gweb_log(logger, "web process was requested to terminate", GWEB_LOG_MSG);
+			break;
+	}
 }

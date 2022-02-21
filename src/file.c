@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <glib/gi18n.h>
 
 #define fexists(file) (access(file, F_OK) == 0)
 
@@ -16,14 +17,8 @@ int gweb_create_dir_recurse(const char *dirpath) {
 }
 
 char *gweb_cookie_file() {
-    char *cookiefile = malloc(strlen(gweb_get_homedir()) +
-                              strlen("/.local/share/gweb/cookie.db") + 1);
-    char *cookiedir =
-        malloc(strlen(gweb_get_homedir()) + strlen("/.local/share/gweb") + 1);
-    strcpy(cookiefile, gweb_get_homedir());
-    strcpy(cookiedir, gweb_get_homedir());
-    strcpy(cookiedir, strcat(cookiedir, "/.local/share/gweb"));
-    strcpy(cookiefile, strcat(cookiefile, "/.local/share/gweb/cookie.db"));
+	char *cookiefile = g_build_filename(g_get_user_data_dir(), "gweb", "cookie.db", NULL);
+	char *cookiedir = g_build_filename(g_get_user_data_dir(), "gweb", NULL);
     int result = 0;
     if (!fexists(cookiedir)) {
         result = gweb_create_dir_recurse(cookiedir);

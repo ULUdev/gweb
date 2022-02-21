@@ -4,6 +4,7 @@
 #include <webkit2/webkit2.h>
 #include <stdbool.h>
 #define GWEB_BOX_SPACING 2
+#define GWEB_SEARCH_QUERY "http://duckduckgo.com/?q="
 typedef struct GwebTabs gweb_tabs_t;
 typedef struct GwebAddTabBtnData gweb_add_tab_btn_data_t;
 typedef struct GwebWebviewSettings gweb_webview_settings_t;

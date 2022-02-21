@@ -6,12 +6,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#error "Windows is not supported"
+#endif
 
 // library version
 #define GWEB_VERSION 1
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.1.4"
+#define GWEB_VERSION_STR "1.2.4"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR = "\n"

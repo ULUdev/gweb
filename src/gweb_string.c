@@ -59,7 +59,7 @@ linked_list_t *gweb_strsplit(const char *str, const char sep) {
             }
             printf("buffer: %s\n", buffer); // DEBUG
             // add a copy of buffer to the list
-            linked_list_push(list, strdup(buffer));
+            linked_list_push(list, (void *)strdup(buffer));
 
             // reset the buffer
             strcpy(buffer, "");
@@ -72,7 +72,7 @@ linked_list_t *gweb_strsplit(const char *str, const char sep) {
         }
     }
     if (strlen(buffer) > 0) {
-        linked_list_push(list, strdup(buffer));
+        linked_list_push(list, (void *)strdup(buffer));
     }
     free(buffer);
 
