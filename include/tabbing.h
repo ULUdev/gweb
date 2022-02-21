@@ -1,13 +1,14 @@
 #ifndef __GWEB_TABBING_H__
 #define __GWEB_TABBING_H__
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 #include <stdbool.h>
 #define GWEB_BOX_SPACING 2
 typedef struct GwebTabs gweb_tabs_t;
 typedef struct GwebAddTabBtnData gweb_add_tab_btn_data_t;
 typedef struct GwebWebviewSettings gweb_webview_settings_t;
 gweb_tabs_t *gweb_tabs_new();
-void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webview_settings_t *settings);
+GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri, gweb_webview_settings_t *settings, WebKitWebView *related);
 void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num);
 void gweb_tabs_destroy(gweb_tabs_t *tabs);
 void gweb_add_tab_button_callback(GtkButton *button, gweb_add_tab_btn_data_t *data);

@@ -11,7 +11,7 @@
 #define GWEB_VERSION 1
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.1.3"
+#define GWEB_VERSION_STR "1.1.4"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR = "\n"
@@ -76,11 +76,12 @@ int main(int argc, char **argv) {
     gweb_webview_settings_t *websettings =
         gweb_settings_new(dev_tools, javascript);
     if (linked_list_size(urls) == 0) {
-        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, "about:blank", websettings);
+        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, "about:blank", websettings,
+                     NULL);
     }
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
-        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings);
+        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings, NULL);
     }
     linked_list_destroy(urls);
     GtkWidget *add_tab =

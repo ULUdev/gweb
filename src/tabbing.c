@@ -51,6 +51,18 @@ struct TabRemoveData {
     gweb_tabs_t *tabs;
 };
 
+GtkWidget *gweb_handle_webview_create(WebKitWebView *web_view,
+                                      WebKitNavigationAction *nav_act,
+                                      struct TabRemoveData *user_data) {
+    assert(user_data);
+    assert(user_data->notebook);
+    assert(user_data->tabs);
+    return gweb_add_tab(user_data->notebook, user_data->tabs,
+                        webkit_uri_request_get_uri(
+                            webkit_navigation_action_get_request(nav_act)),
+                        NULL, web_view);
+}
+
 void gweb_remove_tab_callback(GtkButton *btn, struct TabRemoveData *user_data) {
     assert(user_data != NULL);
     assert(user_data->notebook != NULL);
@@ -155,21 +167,40 @@ void gweb_reload_callback(GtkButton *button, WebKitWebView *user_data) {
     webkit_web_view_reload(user_data);
 }
 
-void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
-                  gweb_webview_settings_t *settings) {
+// create a new tab from a related webview or from gweb_webview_settings_t
+GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
+                        gweb_webview_settings_t *settings,
+                        WebKitWebView *related) {
     GtkWidget *webview, *label, *hbox, *vbox, *entry, *tab_box, *tab_closebtn,
         *tab_forward, *tab_back, *tab_reload, *load_pbar;
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
 
-    tab_back =
-        gtk_button_new_from_icon_name("arrow-left", GTK_ICON_SIZE_BUTTON);
+    tab_back = gtk_button_new_from_icon_name("go-previous-symbolic",
+                                             GTK_ICON_SIZE_BUTTON);
     tab_forward =
-        gtk_button_new_from_icon_name("arrow-right", GTK_ICON_SIZE_BUTTON);
+        gtk_button_new_from_icon_name("go-next-symbolic", GTK_ICON_SIZE_BUTTON);
     tab_reload = gtk_button_new_from_icon_name("reload", GTK_ICON_SIZE_BUTTON);
     entry = gtk_entry_new();
-    webview = webkit_web_view_new();
     load_pbar = gtk_progress_bar_new();
+
+    if (related) {
+        webview = webkit_web_view_new_with_related_view(related);
+    } else if (settings) {
+        webview = webkit_web_view_new();
+        WebKitSettings *websettings =
+            webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
+        webkit_settings_set_enable_javascript(websettings,
+                                              settings->javascript);
+        webkit_settings_set_enable_developer_extras(websettings,
+                                                    settings->dev_tools);
+        webkit_settings_set_enable_page_cache(websettings, true);
+    } else {
+        gweb_log(tabs->logger, "cannot create webview", GWEB_LOG_ERR);
+
+        // some memory issues
+        abort();
+    }
 
     gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(load_pbar), false);
 
@@ -191,13 +222,6 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
     gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), load_pbar, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), webview, true, true, 1);
-
-    WebKitSettings *websettings =
-        webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
-    g_object_set(G_OBJECT(websettings), "enable-developer-extras",
-                 settings->dev_tools, NULL);
-    g_object_set(G_OBJECT(websettings), "enable-javascript",
-                 settings->javascript, NULL);
 
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
 
@@ -271,10 +295,14 @@ void gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
     tab_remove_data->tab_widget = vbox;
     g_signal_connect(G_OBJECT(tab_closebtn), "clicked",
                      G_CALLBACK(gweb_remove_tab_callback), tab_remove_data);
+    g_signal_connect(G_OBJECT(webview), "create",
+                     G_CALLBACK(gweb_handle_webview_create), tab_remove_data);
     gtk_widget_show_all(vbox);
     gtk_widget_show_all(hbox);
     gtk_widget_show_all(tab_box);
+
     gtk_notebook_set_current_page(notebook, res);
+    return webview;
 }
 
 void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
@@ -328,7 +356,8 @@ void gweb_add_tab_button_callback(GtkButton *button,
     assert(data != NULL);
     assert(data->notebook != NULL);
     assert(data->tabs != NULL);
-    gweb_add_tab(data->notebook, data->tabs, "about:blank", data->settings);
+    gweb_add_tab(data->notebook, data->tabs, "about:blank", data->settings,
+                 NULL);
 }
 
 gweb_add_tab_btn_data_t *gweb_gen_data(GtkNotebook *notebook, gweb_tabs_t *tabs,
@@ -347,6 +376,7 @@ gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript) {
     settings->javascript = javascript;
     return settings;
 }
+
 void gweb_settings_destroy(gweb_webview_settings_t *settings) {
     free(settings);
 }

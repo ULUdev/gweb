@@ -16,6 +16,7 @@ main() {
 		compile
 	fi
 	test_cmd "./gweb -V"
+	test_cmd "./gweb -h"
 }
 
 main "$@"
