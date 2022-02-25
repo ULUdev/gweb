@@ -2,6 +2,7 @@
 #include "file.h"
 #include "gweb_string.h"
 #include "log.h"
+#include "resourceblock.h"
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <stdbool.h>
@@ -219,7 +220,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
         // some memory issues
         abort();
     }
-
+	gweb_load_filter_list("filters.json", webview, tabs->logger);
     gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(load_pbar), false);
 
     g_signal_connect(G_OBJECT(tab_back), "clicked",
