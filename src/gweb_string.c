@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wctype.h>
 
 // returns 0 if the strings are equal and 1 if they are different
 int gweb_streq(char *s1, char *s2) {
@@ -77,4 +78,33 @@ linked_list_t *gweb_strsplit(const char *str, const char sep) {
     free(buffer);
 
     return list;
+}
+
+/*
+ * strip str of leading and trailing whitespace
+ */
+void gweb_strstripltw(char *str) {
+
+    while (iswspace(str[0]) != 0) {
+        // shift the string one to the left
+        for (int i = 1; i <= strlen(str); i++) {
+            str[i - 1] = str[i];
+        }
+    }
+
+    while (iswspace(str[strlen(str) - 1]) != 0) {
+        // replace whitespace character with '\0'
+        str[strlen(str) - 1] = '\0';
+    }
+}
+
+/*
+ * create a new allocated string based on str that holds the same content of str
+ * except that it's stripped of leading and trailing whitespace
+ */
+char *gweb_astrstripltw(const char *str) {
+    char *new = malloc(strlen(str) + 1);
+    strcpy(new, str);
+    gweb_strstripltw(new);
+    return new;
 }

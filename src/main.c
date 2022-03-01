@@ -1,4 +1,6 @@
+#include "config.h"
 #include "gweb_string.h"
+#include "hashmap/hashmap.h"
 #include "linked_list/linked_list.h"
 #include "log.h"
 #include "tabbing.h"
@@ -26,12 +28,14 @@ const char *GWEB_HELP_STR = "\n"
                             "  -v,--verbose: verbose logging\n"
                             "  -vv,--vverbose: more verbose logging\n"
                             "  --nojs: disable javascript\n"
-                            "  --nodev: disable developer tools\n\n";
+                            "  --nodev: disable developer tools\n"
+							"  --noconf: disable configuration reading\n\n";
 
 int main(int argc, char **argv) {
     gweb_log_level verbosity = GWEB_LOG_ERR;
     bool dev_tools = true;
     bool javascript = true;
+    bool use_config = true;
     linked_list_t *urls = linked_list_new();
     for (int i = 1; i < argc; i++) {
         if (streq(argv[i], "-v") || streq(argv[i], "--verbose")) {
@@ -52,6 +56,8 @@ int main(int argc, char **argv) {
         } else if (streq(argv[i], "-h") || streq(argv[i], "--help")) {
             fprintf(stderr, GWEB_HELP_STR);
             exit(0);
+        } else if (streq(argv[i], "--noconf")) {
+            use_config = false;
         } else {
             linked_list_push(urls, argv[i]);
         }
@@ -64,6 +70,29 @@ int main(int argc, char **argv) {
     gweb_set_log_level(logger, verbosity);
 
     gweb_log(logger, "Initalizing Gweb", GWEB_LOG_MSG);
+
+    hashmap_t *config = NULL;
+    if (use_config) {
+        config = gweb_parse_config(
+            g_build_filename(g_get_user_config_dir(), "gweb", "config", NULL),
+            logger);
+
+        char *confstr = hashmap_read(config, "javascript");
+        if (confstr != NULL) {
+            int res = gweb_parse_bool_str(confstr);
+            if (res == 0) {
+                javascript = true;
+            } else if (res == 1) {
+                javascript = false;
+            } else {
+                gweb_log(
+                    logger,
+                    "configuration attribute 'javascript' has invalid value",
+                    GWEB_LOG_ERR);
+            }
+        }
+    }
+
     if (javascript) {
         gweb_log(logger, "javascript enabled", GWEB_LOG_MSG);
     } else {
@@ -78,10 +107,15 @@ int main(int argc, char **argv) {
     gweb_tabs_t *tabs = gweb_tabs_new(logger);
     gweb_webview_settings_t *websettings =
         gweb_settings_new(dev_tools, javascript);
-    if (linked_list_size(urls) == 0) {
-        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, "about:blank", websettings,
-                     NULL);
+    char *new_tab_url = "about:blank";
+    if (use_config) {
+        char *tmp = hashmap_read(config, "new_tab_url");
+        if (tmp != NULL) {
+            new_tab_url = tmp;
+        }
     }
+    gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings,
+                 NULL);
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
         gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings, NULL);
@@ -92,7 +126,7 @@ int main(int argc, char **argv) {
     gtk_widget_set_tooltip_text(add_tab, "Add a new tab");
     gweb_log(logger, "generating data for tab handling", GWEB_LOG_MSG);
     gweb_add_tab_btn_data_t *data =
-        gweb_gen_data(GTK_NOTEBOOK(notebook), tabs, websettings);
+        gweb_gen_data(GTK_NOTEBOOK(notebook), tabs, websettings, new_tab_url);
     g_signal_connect(G_OBJECT(add_tab), "clicked",
                      G_CALLBACK(gweb_add_tab_button_callback), data);
     gtk_notebook_set_action_widget(GTK_NOTEBOOK(notebook), add_tab,
@@ -113,6 +147,7 @@ int main(int argc, char **argv) {
     gweb_tabs_destroy(tabs);
     gweb_data_destroy(data);
     gweb_settings_destroy(websettings);
+    hashmap_destroy(config);
 
     return 0;
 }

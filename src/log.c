@@ -15,19 +15,24 @@ gweb_logger *gweb_logger_new() {
 }
 
 const char *gweb_log_level_text(gweb_log_level level) {
-	switch (level) {
-		case GWEB_LOG_ERR: return " error";
-		case GWEB_LOG_WARN: return " warning";
-		case GWEB_LOG_MSG: return "";
-		default: return "";
-	}
+    switch (level) {
+    case GWEB_LOG_ERR:
+        return " error";
+    case GWEB_LOG_WARN:
+        return " warning";
+    case GWEB_LOG_MSG:
+        return "";
+    default:
+        return "";
+    }
 }
 
 // TODO: add time information to a log
 // Note: level refers to the log level of the message not the logger
 void gweb_log(gweb_logger *logger, const char *text, gweb_log_level level) {
     if (level <= logger->level) {
-        fprintf(stderr, "[%s%s] %s\n", logger->text, gweb_log_level_text(level), text);
+        fprintf(stderr, "[%s%s] %s\n", logger->text, gweb_log_level_text(level),
+                text);
     }
 }
 

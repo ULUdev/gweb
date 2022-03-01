@@ -3,5 +3,6 @@ gweb
 compilelog.txt
 lib
 include/linked_list
+include/hashmap
 *.o
 aur
