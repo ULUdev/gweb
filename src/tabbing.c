@@ -15,6 +15,7 @@
 #define strstartswith(s1, s2) (gweb_strstartswith(s1, s2) == 0)
 #define GWEB_NEW_TAB "New Tab"
 
+// Structs: {{{
 typedef struct GwebTab {
     void *data;
     GtkWidget *tab_widget;
@@ -53,88 +54,39 @@ struct TabRemoveData {
     gweb_tabs_t *tabs;
 };
 
-GtkWidget *gweb_handle_webview_create(WebKitWebView *web_view,
-                                      WebKitNavigationAction *nav_act,
-                                      struct TabRemoveData *user_data) {
-    assert(user_data);
-    assert(user_data->notebook);
-    assert(user_data->tabs);
-    return gweb_add_tab(user_data->notebook, user_data->tabs,
-                        webkit_uri_request_get_uri(
-                            webkit_navigation_action_get_request(nav_act)),
-                        NULL, web_view);
-}
-
-void gweb_remove_tab_callback(GtkButton *btn, struct TabRemoveData *user_data) {
-    assert(user_data != NULL);
-    assert(user_data->notebook != NULL);
-    assert(user_data->tabs != NULL);
-    assert(user_data->tab_widget != NULL);
-    char *str = malloc(100);
-    sprintf(str, "removing tab number %d",
-            gtk_notebook_page_num(user_data->notebook, user_data->tab_widget));
-    gweb_log(user_data->tabs->logger, str, GWEB_LOG_MSG);
-    gweb_remove_tab(
-        user_data->tabs, user_data->notebook,
-        gtk_notebook_page_num(user_data->notebook, user_data->tab_widget));
-    free(str);
-    free(user_data);
-}
-
 typedef struct GwebLoadChangedUdata gweb_lc_udata;
 
-void gweb_handle_load_changed(WebKitWebView *web_view,
-                              WebKitLoadEvent load_event,
-                              gweb_lc_udata *user_data) {
-    assert(user_data != NULL);
-    assert(user_data->notebook != NULL);
-    assert(user_data->entry != NULL);
-    assert(user_data->tab_widget != NULL);
-    assert(user_data->label != NULL);
-    assert(user_data->pbar != NULL);
-    gtk_entry_set_text(user_data->entry, webkit_web_view_get_uri(web_view));
+// }}}
 
-    gtk_widget_show(GTK_WIDGET(user_data->pbar));
-    gtk_progress_bar_set_fraction(
-        user_data->pbar, webkit_web_view_get_estimated_load_progress(web_view));
-    if (load_event == WEBKIT_LOAD_FINISHED) {
-        gtk_widget_hide(GTK_WIDGET(user_data->pbar));
-        char *title = webkit_web_view_get_title(web_view);
-        if (title == NULL) {
-            title = malloc(strlen(GWEB_NEW_TAB) + 1);
-            strcpy(title, GWEB_NEW_TAB);
-        } else {
-            title = malloc(strlen(title) + 1);
-            strcpy(title, webkit_web_view_get_title(web_view));
-        }
-        if (strlen(title) > 23) {
-            char *new_title = malloc(24);
-            for (int i = 0; i < 20; i++) {
-                new_title[i] = title[i];
-            }
-            free(title);
-            // add three dots and a null terminator
-            new_title[19] = '.';
-            new_title[20] = '.';
-            new_title[21] = '.';
-            new_title[22] = '\0';
-            title = new_title;
-        }
-        gtk_label_set_label(user_data->label, title);
-        // gtk_label_set_label(user_data->label,
-        // webkit_web_view_get_title(web_view));
-        free(title);
+// Callbacks: {{{
+void gweb_webview_handle_terminated(WebKitWebView *web_view,
+                                    WebKitWebProcessTerminationReason reason,
+                                    gweb_tabs_t *tabs) {
+    assert(tabs);
+    assert(tabs->logger);
+    gweb_logger *logger = tabs->logger;
+    switch (reason) {
+    case WEBKIT_WEB_PROCESS_CRASHED:
+        gweb_log(logger, "web process has crashed", GWEB_LOG_ERR);
+        break;
+    case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
+        gweb_log(logger, "web process has exceeded its memory limit",
+                 GWEB_LOG_ERR);
+        break;
+    case WEBKIT_WEB_PROCESS_TERMINATED_BY_API:
+        gweb_log(logger, "web process was requested to terminate",
+                 GWEB_LOG_MSG);
+        break;
     }
 }
-
-gweb_tabs_t *gweb_tabs_new(gweb_logger *logger) {
-    gweb_tabs_t *tabs = malloc(sizeof(gweb_tabs_t));
-    tabs->head = NULL;
-    tabs->count = 0;
-    tabs->logger = logger;
-    return tabs;
+void gweb_add_tab_button_callback(GtkButton *button,
+                                  gweb_add_tab_btn_data_t *data) {
+    assert(data != NULL);
+    assert(data->notebook != NULL);
+    assert(data->tabs != NULL);
+    assert(data->uri != NULL);
+    gweb_add_tab(data->notebook, data->tabs, data->uri, data->settings, NULL);
 }
-
 void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
 
     assert(user_data != NULL);
@@ -187,9 +139,137 @@ void gweb_reload_callback(GtkButton *button, WebKitWebView *user_data) {
     assert(user_data != NULL);
     webkit_web_view_reload(user_data);
 }
+GtkWidget *gweb_handle_webview_create(WebKitWebView *web_view,
+                                      WebKitNavigationAction *nav_act,
+                                      struct TabRemoveData *user_data) {
+    assert(user_data);
+    assert(user_data->notebook);
+    assert(user_data->tabs);
+    return gweb_add_tab(user_data->notebook, user_data->tabs,
+                        webkit_uri_request_get_uri(
+                            webkit_navigation_action_get_request(nav_act)),
+                        NULL, web_view);
+}
+
+void gweb_remove_tab_callback(GtkButton *btn, struct TabRemoveData *user_data) {
+    assert(user_data != NULL);
+    assert(user_data->notebook != NULL);
+    assert(user_data->tabs != NULL);
+    assert(user_data->tab_widget != NULL);
+    char *str = malloc(100);
+    sprintf(str, "removing tab number %d",
+            gtk_notebook_page_num(user_data->notebook, user_data->tab_widget));
+    gweb_log(user_data->tabs->logger, str, GWEB_LOG_MSG);
+    gweb_remove_tab(
+        user_data->tabs, user_data->notebook,
+        gtk_notebook_page_num(user_data->notebook, user_data->tab_widget));
+    free(str);
+    free(user_data);
+}
+
+void gweb_handle_load_changed(WebKitWebView *web_view,
+                              WebKitLoadEvent load_event,
+                              gweb_lc_udata *user_data) {
+    assert(user_data != NULL);
+    assert(user_data->notebook != NULL);
+    assert(user_data->entry != NULL);
+    assert(user_data->tab_widget != NULL);
+    assert(user_data->label != NULL);
+    assert(user_data->pbar != NULL);
+    gtk_entry_set_text(user_data->entry, webkit_web_view_get_uri(web_view));
+
+    gtk_widget_show(GTK_WIDGET(user_data->pbar));
+    gtk_progress_bar_set_fraction(
+        user_data->pbar, webkit_web_view_get_estimated_load_progress(web_view));
+    if (load_event == WEBKIT_LOAD_FINISHED) {
+        gtk_widget_hide(GTK_WIDGET(user_data->pbar));
+        char *title = (char *)webkit_web_view_get_title(web_view);
+        if (title == NULL) {
+            title = malloc(strlen(GWEB_NEW_TAB) + 1);
+            strcpy(title, GWEB_NEW_TAB);
+        } else {
+            title = malloc(strlen(title) + 1);
+            strcpy(title, webkit_web_view_get_title(web_view));
+        }
+        if (strlen(title) > 23) {
+            char *new_title = malloc(24);
+            for (int i = 0; i < 20; i++) {
+                new_title[i] = title[i];
+            }
+            free(title);
+            // add three dots and a null terminator
+            new_title[19] = '.';
+            new_title[20] = '.';
+            new_title[21] = '.';
+            new_title[22] = '\0';
+            title = new_title;
+        }
+        gtk_label_set_label(user_data->label, title);
+        // gtk_label_set_label(user_data->label,
+        // webkit_web_view_get_title(web_view));
+        free(title);
+    }
+}
+
+// }}}
+
+// Tab related functions: {{{
+gweb_tabs_t *gweb_tabs_new(gweb_logger *logger) {
+    gweb_tabs_t *tabs = malloc(sizeof(gweb_tabs_t));
+    tabs->head = NULL;
+    tabs->count = 0;
+    tabs->logger = logger;
+    return tabs;
+}
+
+void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
+    if (tabs->count == 0) {
+        return;
+    } else if (tabs->count == 1) {
+        gtk_main_quit();
+        return;
+    }
+    GtkWidget *tab_widget = gtk_notebook_get_nth_page(notebook, page_num);
+    if (tab_widget == NULL) {
+        // tab number out of bounds
+        return;
+    }
+    gweb_tab_t *prev = NULL;
+    gweb_tab_t *cur = tabs->head;
+    while (cur != NULL && cur->tab_widget != tab_widget) {
+        prev = cur;
+        cur = cur->next;
+    }
+    // attempting to remove the first page would cause a segfault normally if
+    // you try to set the previos next pointer to the current next pointer
+    if (prev == NULL) {
+        tabs->head = tabs->head->next;
+    } else if (cur == NULL) {
+        return;
+    } else {
+        prev->next = cur->next;
+    }
+    free(cur->data);
+    free(cur);
+
+    tabs->count--;
+    gtk_notebook_remove_page(notebook, page_num);
+}
+
+void gweb_tabs_destroy(gweb_tabs_t *tabs) {
+    gweb_tab_t *current = tabs->head;
+    gweb_log(tabs->logger, "cleaning up tabs", GWEB_LOG_MSG);
+    while (current != NULL) {
+        gweb_tab_t *next = current->next;
+        free(current->data);
+        free(current);
+        current = next;
+    }
+    free(tabs);
+}
 
 // create a new tab from a related webview or from gweb_webview_settings_t
-GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
+GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, const char *uri,
                         gweb_webview_settings_t *settings,
                         WebKitWebView *related) {
     GtkWidget *webview, *label, *hbox, *vbox, *entry, *tab_box, *tab_closebtn,
@@ -328,73 +408,25 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, char *uri,
     return webview;
 }
 
-void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
-    if (tabs->count == 0) {
-        return;
-    } else if (tabs->count == 1) {
-        gtk_main_quit();
-        return;
-    }
-    GtkWidget *tab_widget = gtk_notebook_get_nth_page(notebook, page_num);
-    if (tab_widget == NULL) {
-        // tab number out of bounds
-        return;
-    }
-    gweb_tab_t *prev = NULL;
-    gweb_tab_t *cur = tabs->head;
-    while (cur != NULL && cur->tab_widget != tab_widget) {
-        prev = cur;
-        cur = cur->next;
-    }
-    // attempting to remove the first page would cause a segfault normally if
-    // you try to set the previos next pointer to the current next pointer
-    if (prev == NULL) {
-        tabs->head = tabs->head->next;
-    } else if (cur == NULL) {
-        return;
-    } else {
-        prev->next = cur->next;
-    }
-    free(cur->data);
-    free(cur);
+// }}}
 
-    tabs->count--;
-    gtk_notebook_remove_page(notebook, page_num);
-}
-
-void gweb_tabs_destroy(gweb_tabs_t *tabs) {
-    gweb_tab_t *current = tabs->head;
-    gweb_log(tabs->logger, "cleaning up tabs", GWEB_LOG_MSG);
-    while (current != NULL) {
-        gweb_tab_t *next = current->next;
-        free(current->data);
-        free(current);
-        current = next;
-    }
-    free(tabs);
-}
-
-void gweb_add_tab_button_callback(GtkButton *button,
-                                  gweb_add_tab_btn_data_t *data) {
-    assert(data != NULL);
-    assert(data->notebook != NULL);
-    assert(data->tabs != NULL);
-    assert(data->uri != NULL);
-    gweb_add_tab(data->notebook, data->tabs, data->uri, data->settings, NULL);
-}
-
+// Tab data: {{{
 gweb_add_tab_btn_data_t *gweb_gen_data(GtkNotebook *notebook, gweb_tabs_t *tabs,
                                        gweb_webview_settings_t *settings,
-                                       char *uri) {
+                                       const char *uri) {
     gweb_add_tab_btn_data_t *data = malloc(sizeof(gweb_add_tab_btn_data_t));
     data->notebook = notebook;
     data->tabs = tabs;
     data->settings = settings;
-    data->uri = uri;
+    data->uri = gweb_strdup(uri);
     return data;
 }
 
-void gweb_data_destroy(gweb_add_tab_btn_data_t *data) { free(data); }
+void gweb_data_destroy(gweb_add_tab_btn_data_t *data) {
+	free(data->uri);
+	free(data);
+}
+
 gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript) {
     gweb_webview_settings_t *settings = malloc(sizeof(gweb_webview_settings_t));
     settings->dev_tools = dev_tools;
@@ -405,24 +437,6 @@ gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript) {
 void gweb_settings_destroy(gweb_webview_settings_t *settings) {
     free(settings);
 }
+// }}}
 
-void gweb_webview_handle_terminated(WebKitWebView *web_view,
-                                    WebKitWebProcessTerminationReason reason,
-                                    gweb_tabs_t *tabs) {
-    assert(tabs);
-    assert(tabs->logger);
-    gweb_logger *logger = tabs->logger;
-    switch (reason) {
-    case WEBKIT_WEB_PROCESS_CRASHED:
-        gweb_log(logger, "web process has crashed", GWEB_LOG_ERR);
-        break;
-    case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
-        gweb_log(logger, "web process has exceeded its memory limit",
-                 GWEB_LOG_ERR);
-        break;
-    case WEBKIT_WEB_PROCESS_TERMINATED_BY_API:
-        gweb_log(logger, "web process was requested to terminate",
-                 GWEB_LOG_MSG);
-        break;
-    }
-}
+// vim: fdm=marker

@@ -5,6 +5,7 @@
 #include "log.h"
 #include "tabbing.h"
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,13 +30,16 @@ const char *GWEB_HELP_STR = "\n"
                             "  -vv,--vverbose: more verbose logging\n"
                             "  --nojs: disable javascript\n"
                             "  --nodev: disable developer tools\n"
-							"  --noconf: disable configuration reading\n\n";
+                            "  --noconf: disable configuration reading\n"
+							"  --headless: launch a minimal gui version that uses the last url supplied as a url to be rendered\n"
+							"\n";
 
 int main(int argc, char **argv) {
     gweb_log_level verbosity = GWEB_LOG_ERR;
     bool dev_tools = true;
     bool javascript = true;
     bool use_config = true;
+	bool headless = false;
     linked_list_t *urls = linked_list_new();
     for (int i = 1; i < argc; i++) {
         if (streq(argv[i], "-v") || streq(argv[i], "--verbose")) {
@@ -58,6 +62,8 @@ int main(int argc, char **argv) {
             exit(0);
         } else if (streq(argv[i], "--noconf")) {
             use_config = false;
+		} else if (streq(argv[i], "--headless")) {
+			headless = true;
         } else {
             linked_list_push(urls, argv[i]);
         }
@@ -70,6 +76,24 @@ int main(int argc, char **argv) {
     gweb_set_log_level(logger, verbosity);
 
     gweb_log(logger, "Initalizing Gweb", GWEB_LOG_MSG);
+	
+	if (headless) {
+		if (linked_list_size(urls) > 0) {
+			GtkWidget *hlwv = webkit_web_view_new();
+			webkit_web_view_load_uri(WEBKIT_WEB_VIEW(hlwv), (char *)linked_list_pop(urls));
+			g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit),
+    		                 NULL);
+			gtk_container_add(GTK_CONTAINER(window), hlwv);
+			gtk_widget_show_all(window);
+			gtk_main();
+			gweb_log(logger, "exitting headless browser process", GWEB_LOG_MSG);
+			gweb_logger_destroy(logger);
+			return 0;
+		} else {
+			gweb_log(logger, "no url found for headless mode", GWEB_LOG_WARN);
+		}
+	}
+
 
     hashmap_t *config = NULL;
     if (use_config) {
@@ -114,8 +138,7 @@ int main(int argc, char **argv) {
             new_tab_url = tmp;
         }
     }
-    gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings,
-                 NULL);
+    gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings, NULL);
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
         gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings, NULL);

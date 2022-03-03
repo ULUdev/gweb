@@ -38,7 +38,6 @@ void gweb_config_process_line(const char *line, hashmap_t *hashmap,
             ident = strcat(ident, buffer);
         }
     }
-    char *tmp;
 
     gweb_strstripltw(ident);
     gweb_strstripltw(value);
@@ -67,11 +66,21 @@ hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
 
     // file opening failed
     if (file == NULL) {
-        gweb_log(logger, "configuration file doesn't exist", GWEB_LOG_WARN);
+        gweb_log(logger, "failed to open configuration file", GWEB_LOG_WARN);
         return NULL;
     }
 
-    hashmap_t *hashmap = hashmap_new(GWEB_NUM_CONFIG_OPTS);
+    size_t lines = 0;
+	char current_char = '\0';
+    while (feof(file) == 0) {
+		fread(&current_char, 1, 1, file);
+		if (current_char == '\n') lines++;
+    }
+
+	// reset file pointer
+	fseek(file, 0, SEEK_SET);
+
+    hashmap_t *hashmap = hashmap_new(lines);
     hashmap_set_hashing_algorithm(hashmap, concatenative_modulo_sum_hash);
 
     char *line = malloc(3);

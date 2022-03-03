@@ -44,7 +44,7 @@ int hashmap_insert(hashmap_t *hashmap, const char *identifier, void *value) {
         return -1;
     }
     struct HashmapElement *new = malloc(sizeof(struct HashmapElement));
-    new->identifier = identifier;
+    new->identifier = (char *)identifier;
     new->value = value;
 
     size_t hout = (*hashmap->hash_func)(identifier, hashmap->size);

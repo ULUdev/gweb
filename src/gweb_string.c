@@ -5,8 +5,10 @@
 #include <string.h>
 #include <wctype.h>
 
+#define strdup(str) gweb_strdup(str)
+
 // returns 0 if the strings are equal and 1 if they are different
-int gweb_streq(char *s1, char *s2) {
+int gweb_streq(const char *s1, const char *s2) {
     if (strlen(s1) != strlen(s2)) {
         return 1;
     }
@@ -18,15 +20,13 @@ int gweb_streq(char *s1, char *s2) {
 }
 
 // check if s1 starts with s2 and return 0 if true and 1 if not true
-int gweb_strstartswith(char *s1, char *s2) {
+int gweb_strstartswith(const char *s1, const char *s2) {
     if (strlen(s1) < strlen(s2)) {
         return 1;
     }
     int startswith = 1;
     for (int i = 0; i < strlen(s2); i++) {
-        if (s1[i] == s2[i]) {
-            startswith = 0;
-        } else {
+        if (s1[i] != s2[i]) {
             startswith = 1;
             break;
         }
@@ -93,7 +93,7 @@ void gweb_strstripltw(char *str) {
     }
 
     while (iswspace(str[strlen(str) - 1]) != 0) {
-        // replace whitespace character with '\0'
+        // replace whitespace character with '\0' to terminate the string
         str[strlen(str) - 1] = '\0';
     }
 }
@@ -107,4 +107,14 @@ char *gweb_astrstripltw(const char *str) {
     strcpy(new, str);
     gweb_strstripltw(new);
     return new;
+}
+
+char *gweb_strdup(const char *str) {
+    if (!str) {
+        return NULL;
+    }
+
+    char *dup = malloc(strlen(str) + 1);
+    strcpy(dup, str);
+    return dup;
 }

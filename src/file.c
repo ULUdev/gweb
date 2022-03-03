@@ -29,7 +29,11 @@ int gweb_direxists(const char *dirpath) {
 
 // returns -1 on fail
 int gweb_create_dir_recurse(const char *dirpath) {
+#ifdef _WIN32
+	abort();
+#else
     return mkdir(dirpath, 0777);
+#endif
 }
 
 char *gweb_cookie_file() {
