@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define GWEB_NUM_CONFIG_OPTS 5
-
 void gweb_config_process_line(const char *line, hashmap_t *hashmap,
                               gweb_logger *logger) {
 
@@ -39,6 +37,8 @@ void gweb_config_process_line(const char *line, hashmap_t *hashmap,
         }
     }
 
+    free(buffer);
+    
     gweb_strstripltw(ident);
     gweb_strstripltw(value);
 
@@ -70,15 +70,18 @@ hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
         return NULL;
     }
 
-    size_t lines = 0;
-	char current_char = '\0';
+    size_t lines = 1;
+    char current_char = '\0';
     while (feof(file) == 0) {
-		fread(&current_char, 1, 1, file);
-		if (current_char == '\n') lines++;
+        size_t res = fread(&current_char, 1, 1, file);
+        if (res == 0)
+            break;
+        if (current_char == '\n')
+            lines++;
     }
 
-	// reset file pointer
-	fseek(file, 0, SEEK_SET);
+    // reset file pointer
+    fseek(file, 0, SEEK_SET);
 
     hashmap_t *hashmap = hashmap_new(lines);
     hashmap_set_hashing_algorithm(hashmap, concatenative_modulo_sum_hash);
@@ -86,17 +89,14 @@ hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
     char *line = malloc(3);
     strcpy(line, "");
     char buffer;
-    int eof_reached = 1;
     // unsigned int count = 0;
 
     char *tmp = malloc(2);
     strcpy(tmp, "");
-    while (eof_reached != 0) {
+    while (feof(file) == 0) {
         size_t res = fread(&buffer, 1, 1, file);
-        if (res == 0) {
+        if (res == 0)
             break;
-        }
-
         if (buffer == '\n') {
             tmp[0] = buffer;
             tmp[1] = '\0';

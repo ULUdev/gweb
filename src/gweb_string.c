@@ -24,14 +24,12 @@ int gweb_strstartswith(const char *s1, const char *s2) {
     if (strlen(s1) < strlen(s2)) {
         return 1;
     }
-    int startswith = 1;
-    for (int i = 0; i < strlen(s2); i++) {
-        if (s1[i] != s2[i]) {
-            startswith = 1;
-            break;
-        }
+    int startswith = strncmp(s1, s2, strlen(s2));
+    if (startswith == 0) {
+      return 0;
+    } else {
+      return 1;
     }
-    return startswith;
 }
 
 char *gweb_get_homedir() {

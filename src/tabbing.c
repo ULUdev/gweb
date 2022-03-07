@@ -6,11 +6,9 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <webkit2/webkit2.h>
-
-#define _GNU_SOURCE
-#include <stdio.h>
 
 #define strstartswith(s1, s2) (gweb_strstartswith(s1, s2) == 0)
 #define GWEB_NEW_TAB "New Tab"
@@ -40,6 +38,7 @@ struct GwebLoadChangedUdata {
 struct GwebWebviewSettings {
     bool dev_tools;
     bool javascript;
+	bool private;
 };
 struct GwebAddTabBtnData {
     GtkNotebook *notebook;
@@ -269,8 +268,8 @@ void gweb_tabs_destroy(gweb_tabs_t *tabs) {
 }
 
 // create a new tab from a related webview or from gweb_webview_settings_t
-GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, const char *uri,
-                        gweb_webview_settings_t *settings,
+GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
+                        const char *uri, gweb_webview_settings_t *settings,
                         WebKitWebView *related) {
     GtkWidget *webview, *label, *hbox, *vbox, *entry, *tab_box, *tab_closebtn,
         *tab_forward, *tab_back, *tab_reload, *load_pbar;
@@ -296,6 +295,8 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, const char *ur
         webkit_settings_set_enable_developer_extras(websettings,
                                                     settings->dev_tools);
         webkit_settings_set_enable_page_cache(websettings, true);
+
+        webkit_web_view_set_settings(WEBKIT_WEB_VIEW(webview), websettings);
     } else {
         gweb_log(tabs->logger, "cannot create webview", GWEB_LOG_ERR);
 
@@ -362,14 +363,16 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs, const char *ur
 
     tabs->count++;
 
-    WebKitWebContext *ctx =
-        webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
-    WebKitCookieManager *cookie_man =
-        webkit_web_context_get_cookie_manager(ctx);
-    char *cookiefile = gweb_cookie_file();
-    webkit_cookie_manager_set_persistent_storage(
-        cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
-    free(cookiefile);
+	if (!settings->private) {
+		WebKitWebContext *ctx =
+    	    webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
+    	WebKitCookieManager *cookie_man =
+    	    webkit_web_context_get_cookie_manager(ctx);
+    	char *cookiefile = gweb_cookie_file();
+    	webkit_cookie_manager_set_persistent_storage(
+    	    cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+    	free(cookiefile);
+	}
 
     g_signal_connect(G_OBJECT(webview), "load-changed",
                      G_CALLBACK(gweb_handle_load_changed), data);
@@ -423,14 +426,15 @@ gweb_add_tab_btn_data_t *gweb_gen_data(GtkNotebook *notebook, gweb_tabs_t *tabs,
 }
 
 void gweb_data_destroy(gweb_add_tab_btn_data_t *data) {
-	free(data->uri);
-	free(data);
+    free(data->uri);
+    free(data);
 }
 
-gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript) {
+gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript, bool private) {
     gweb_webview_settings_t *settings = malloc(sizeof(gweb_webview_settings_t));
     settings->dev_tools = dev_tools;
     settings->javascript = javascript;
+	settings->private = private;
     return settings;
 }
 
