@@ -79,21 +79,37 @@ linked_list_t *gweb_strsplit(const char *str, const char sep) {
 }
 
 /*
- * strip str of leading and trailing whitespace
+ * strip str of trailing whitespace
  */
-void gweb_strstripltw(char *str) {
+void gweb_strstriptw(char *str) {
+    while (iswspace(str[strlen(str) - 1]) != 0) {
+        // replace whitespace character with '\0' to terminate the string
+        str[strlen(str) - 1] = '\0';
+    }
+}
 
+/*
+ * strip str of leading whitespace
+ */
+void gweb_strstriplw(char *str) {
     while (iswspace(str[0]) != 0) {
         // shift the string one to the left
         for (int i = 1; i <= strlen(str); i++) {
             str[i - 1] = str[i];
         }
     }
+}
 
-    while (iswspace(str[strlen(str) - 1]) != 0) {
-        // replace whitespace character with '\0' to terminate the string
-        str[strlen(str) - 1] = '\0';
-    }
+/*
+ * strip str of leading and trailing whitespace
+ */
+void gweb_strstripltw(char *str) {
+
+    // remove leading whitespace
+    gweb_strstriplw(str);
+
+    // remove trailing whitespace
+    gweb_strstriptw(str);
 }
 
 /*
@@ -107,6 +123,10 @@ char *gweb_astrstripltw(const char *str) {
     return new;
 }
 
+/*
+ * duplicate a string. Dynamically allocates the new string on the heap which can be freed by calling free()
+ * Note: returns NULL if the input is NULL
+ */
 char *gweb_strdup(const char *str) {
     if (!str) {
         return NULL;

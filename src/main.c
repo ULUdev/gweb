@@ -4,6 +4,7 @@
 #include "linked_list/linked_list.h"
 #include "log.h"
 #include "tabbing.h"
+#include "keyb.h"
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,10 +15,12 @@
 #endif
 
 // library version
-#define GWEB_VERSION 1
+#define GWEB_VERSION_MAJOR 1
+#define GWEB_VERSION_MINOR 3
+#define GWEB_VERSION_PATCH 5
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.3.4"
+#define GWEB_VERSION_STR "1.3.5"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR =
@@ -147,6 +150,15 @@ int main(int argc, char **argv) {
             new_tab_url = tmp;
         }
     }
+
+    gweb_shortcut_data_t *shdata = malloc(sizeof(gweb_shortcut_data_t));
+    shdata->tabs = tabs;
+    shdata->notebook = GTK_NOTEBOOK(notebook);
+    shdata->uri = new_tab_url;
+    shdata->settings = websettings;
+    
+    g_signal_connect(G_OBJECT(window), "key-press-event", G_CALLBACK(gweb_handle_key_press), shdata);
+    
     gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings, NULL);
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
@@ -179,6 +191,7 @@ int main(int argc, char **argv) {
     gweb_tabs_destroy(tabs);
     gweb_data_destroy(data);
     gweb_settings_destroy(websettings);
+    free(shdata);
     hashmap_destroy(config);
 
     return 0;

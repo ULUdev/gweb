@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -std=c18 -Wall -Iinclude -ggdb
+CFLAGS = -c -std=c18 -Wall -Iinclude -O3
 SRC = src/hashmap.c
 
 all: hashmap.o
