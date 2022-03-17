@@ -363,7 +363,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
 
     tabs->count++;
 
-	if (!settings->private) {
+	if (settings && !settings->private) {
 		WebKitWebContext *ctx =
     	    webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
     	WebKitCookieManager *cookie_man =

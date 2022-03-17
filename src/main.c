@@ -37,7 +37,7 @@ const char *GWEB_HELP_STR =
     "  --noconf: disable configuration reading\n"
     "  --headless: launch a minimal gui version that uses the last url "
     "supplied as a url to be rendered\n"
-	"  --private: enable private browsing\n"
+    "  --private: enable private browsing\n"
     "\n";
 
 int main(int argc, char **argv) {
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     bool dev_tools = true;
     bool javascript = true;
     bool use_config = true;
-	bool private = false;
+    bool private = false;
     bool headless = false;
     linked_list_t *urls = linked_list_new();
     for (int i = 1; i < argc; i++) {

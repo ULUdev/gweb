@@ -7,7 +7,9 @@
 
 #define strdup(str) gweb_strdup(str)
 
-// returns 0 if the strings are equal and 1 if they are different
+/*
+ * check if s1 and s2 are equal. If so return 0 otherwise return 1
+ */
 int gweb_streq(const char *s1, const char *s2) {
     if (strlen(s1) != strlen(s2)) {
         return 1;
@@ -19,7 +21,9 @@ int gweb_streq(const char *s1, const char *s2) {
     }
 }
 
-// check if s1 starts with s2 and return 0 if true and 1 if not true
+/* 
+ * check if s1 startswith s2. If so return 0 otherwise return 1
+ */
 int gweb_strstartswith(const char *s1, const char *s2) {
     if (strlen(s1) < strlen(s2)) {
         return 1;
@@ -32,6 +36,9 @@ int gweb_strstartswith(const char *s1, const char *s2) {
     }
 }
 
+/* 
+ * get the homedir of the user. Note: aborts on windows
+ */
 char *gweb_get_homedir() {
 #if _WIN32
     // windows is not implemented
@@ -42,6 +49,10 @@ char *gweb_get_homedir() {
 #endif
 }
 
+/* 
+ * get all the substrings of str separated by sep and store them in a linked
+ * list that is returned
+ */
 linked_list_t *gweb_strsplit(const char *str, const char sep) {
 
     // create a buffer for storing the current substring until `sep`
@@ -124,8 +135,8 @@ char *gweb_astrstripltw(const char *str) {
 }
 
 /*
- * duplicate a string. Dynamically allocates the new string on the heap which can be freed by calling free()
- * Note: returns NULL if the input is NULL
+ * duplicate a string. Dynamically allocates the new string on the heap which
+ * can be freed by calling free() Note: returns NULL if the input is NULL
  */
 char *gweb_strdup(const char *str) {
     if (!str) {

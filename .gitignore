@@ -6,3 +6,4 @@ include/linked_list
 include/hashmap
 *.o
 aur
+**/*\~

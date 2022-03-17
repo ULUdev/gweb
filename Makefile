@@ -1,6 +1,6 @@
 PREFIX = /usr/local
 CC = gcc
-CFLAGS = -std=c18 -Wall -Iinclude `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -O3
+CFLAGS = -std=c18 -Wall -Iinclude $(shell pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0) -O3
 SRC = $(wildcard src/*.c)
 FMT = clang-format
 FMTFLAGS = -i

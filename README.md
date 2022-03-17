@@ -3,11 +3,13 @@
 [![pipeline status](https://gitlab.sokoll.com/moritz/gweb/badges/main/pipeline.svg)](https://gitlab.sokoll.com/moritz/gweb/-/commits/main)
 ## Installation
 ### From source
-If you want to adjust the prefix use `./configure.sh -p <prefix>`.
-For release settings use `./configure.sh -r`. This will remove all debugging flags from the compiler and add optimization
-Just run `make install`. If you want to change other build settings edit the `Makefile`
+If you want to adjust the prefix use `./configure.sh -p <prefix>`.  For release
+settings use `./configure.sh -r`. This will remove all debugging flags from the
+compiler and add optimization Just run `make install`. If you want to change
+other build settings edit the `Makefile`
 ### From the AUR
-`gweb` has a version in the aur. You can install that one. It will be configured with `./configure.sh -r` and prefixed to `/usr`.
+`gweb` has a version in the aur. You can install that one. It will be configured
+with `./configure.sh -r` and prefixed to `/usr`.
 
 ## Usage
 Simply running `gweb` will start the browser. Currently the options are:
@@ -18,6 +20,9 @@ Simply running `gweb` will start the browser. Currently the options are:
   0)
 - `--nojs`: disable javascript
 - `--nodev`: disable developer tools
+- `--private`: enable private browsing mode
+- `--noconf`: do not read the configuration file
+- `--headless`: launch a minimal gui version that uses the last url supplied
 ### Verbosity
 The default verbosity level is 0 meaning only error events of `gweb` are logged
 (GTK has independent settings). The next level is 1 meaning warnings are also
