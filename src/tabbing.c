@@ -38,7 +38,7 @@ struct GwebLoadChangedUdata {
 struct GwebWebviewSettings {
     bool dev_tools;
     bool javascript;
-	bool private;
+    bool private;
 };
 struct GwebAddTabBtnData {
     GtkNotebook *notebook;
@@ -58,6 +58,28 @@ typedef struct GwebLoadChangedUdata gweb_lc_udata;
 // }}}
 
 // Callbacks: {{{
+
+bool gweb_handle_se_changed(GtkSearchEntry *self, WebKitWebView *user_data) {
+    WebKitFindController *fctl = webkit_web_view_get_find_controller(user_data);
+    webkit_find_controller_search(fctl, gtk_entry_get_text(GTK_ENTRY(self)),
+                                  WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE, 0);
+    return true;
+}
+
+void gweb_handle_se_stop(GtkSearchEntry *self, WebKitWebView *user_data) {
+    WebKitFindController *fctl = webkit_web_view_get_find_controller(user_data);
+    webkit_find_controller_search_finish(fctl);
+}
+
+void gweb_handle_se_next(GtkSearchEntry *self, WebKitWebView *user_data) {
+    webkit_find_controller_search_next(
+        webkit_web_view_get_find_controller(user_data));
+}
+void gweb_handle_se_prev(GtkSearchEntry *self, WebKitWebView *user_data) {
+    webkit_find_controller_search_previous(
+        webkit_web_view_get_find_controller(user_data));
+}
+
 void gweb_webview_handle_terminated(WebKitWebView *web_view,
                                     WebKitWebProcessTerminationReason reason,
                                     gweb_tabs_t *tabs) {
@@ -272,7 +294,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                         const char *uri, gweb_webview_settings_t *settings,
                         WebKitWebView *related) {
     GtkWidget *webview, *label, *hbox, *vbox, *entry, *tab_box, *tab_closebtn,
-        *tab_forward, *tab_back, *tab_reload, *load_pbar;
+        *tab_forward, *tab_back, *tab_reload, *load_pbar, *search_entry;
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
 
@@ -283,6 +305,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     tab_reload = gtk_button_new_from_icon_name("reload", GTK_ICON_SIZE_BUTTON);
     entry = gtk_entry_new();
     load_pbar = gtk_progress_bar_new();
+    search_entry = gtk_search_entry_new();
 
     if (related) {
         webview = webkit_web_view_new_with_related_view(related);
@@ -313,6 +336,14 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                      G_CALLBACK(gweb_forward_callback), webview);
     g_signal_connect(G_OBJECT(tab_reload), "clicked",
                      G_CALLBACK(gweb_reload_callback), webview);
+    g_signal_connect(G_OBJECT(search_entry), "search-changed",
+                     G_CALLBACK(gweb_handle_se_changed), webview);
+    g_signal_connect(G_OBJECT(search_entry), "stop-search",
+                     G_CALLBACK(gweb_handle_se_stop), webview);
+    g_signal_connect(G_OBJECT(search_entry), "next-match",
+                     G_CALLBACK(gweb_handle_se_next), webview);
+    g_signal_connect(G_OBJECT(search_entry), "previous-match",
+                     G_CALLBACK(gweb_handle_se_prev), webview);
 
     gtk_widget_set_tooltip_text(tab_back, "Back");
     gtk_widget_set_tooltip_text(tab_forward, "Forward");
@@ -325,6 +356,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), load_pbar, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), webview, true, true, 1);
+    gtk_box_pack_end(GTK_BOX(vbox), search_entry, false, false, 1);
 
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
 
@@ -363,16 +395,16 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
 
     tabs->count++;
 
-	if (settings && !settings->private) {
-		WebKitWebContext *ctx =
-    	    webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
-    	WebKitCookieManager *cookie_man =
-    	    webkit_web_context_get_cookie_manager(ctx);
-    	char *cookiefile = gweb_cookie_file();
-    	webkit_cookie_manager_set_persistent_storage(
-    	    cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
-    	free(cookiefile);
-	}
+    if (settings && !settings->private) {
+        WebKitWebContext *ctx =
+            webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview));
+        WebKitCookieManager *cookie_man =
+            webkit_web_context_get_cookie_manager(ctx);
+        char *cookiefile = gweb_cookie_file();
+        webkit_cookie_manager_set_persistent_storage(
+            cookie_man, cookiefile, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+        free(cookiefile);
+    }
 
     g_signal_connect(G_OBJECT(webview), "load-changed",
                      G_CALLBACK(gweb_handle_load_changed), data);
@@ -430,11 +462,12 @@ void gweb_data_destroy(gweb_add_tab_btn_data_t *data) {
     free(data);
 }
 
-gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript, bool private) {
+gweb_webview_settings_t *gweb_settings_new(bool dev_tools, bool javascript,
+                                           bool private) {
     gweb_webview_settings_t *settings = malloc(sizeof(gweb_webview_settings_t));
     settings->dev_tools = dev_tools;
     settings->javascript = javascript;
-	settings->private = private;
+    settings->private = private;
     return settings;
 }
 

@@ -38,7 +38,7 @@ void gweb_config_process_line(const char *line, hashmap_t *hashmap,
     }
 
     free(buffer);
-    
+
     gweb_strstripltw(ident);
     gweb_strstripltw(value);
 

@@ -21,7 +21,7 @@ int gweb_streq(const char *s1, const char *s2) {
     }
 }
 
-/* 
+/*
  * check if s1 startswith s2. If so return 0 otherwise return 1
  */
 int gweb_strstartswith(const char *s1, const char *s2) {
@@ -30,13 +30,13 @@ int gweb_strstartswith(const char *s1, const char *s2) {
     }
     int startswith = strncmp(s1, s2, strlen(s2));
     if (startswith == 0) {
-      return 0;
+        return 0;
     } else {
-      return 1;
+        return 1;
     }
 }
 
-/* 
+/*
  * get the homedir of the user. Note: aborts on windows
  */
 char *gweb_get_homedir() {
@@ -49,7 +49,7 @@ char *gweb_get_homedir() {
 #endif
 }
 
-/* 
+/*
  * get all the substrings of str separated by sep and store them in a linked
  * list that is returned
  */
