@@ -46,6 +46,16 @@ make_debug() {
 	log "done"
 }
 
+make_debian() {
+    log "configuring for debian (release)..."
+    mkdir -p "$PWD/deb/DEBIAN"
+    set_prefix "$PWD/deb/usr"
+    make_release
+    cp control "$PWD/deb/DEBIAN/control"
+    log "done"
+    
+}
+
 tags() {
 	log "generating tag file"
 	ctags -R src include linked_list/src linked_list/include hashmap/src hashmap/include --exclude="*aur*"
@@ -63,6 +73,7 @@ OPTIONS
   -r: make makefile act in release mode
   -d: make makefile act in debug mode
   -t: generate tags for development (also done with -d)
+  -D: prepare for debian packaging
 " >&2
 }
 
@@ -70,7 +81,7 @@ main() {
 	local opts;
 	check_deps
 	set -e
-	while getopts "htgp:rd" opts; do
+	while getopts "htgp:rdD" opts; do
 		case $opts in
 			h)
 				print_help
@@ -94,6 +105,9 @@ main() {
 			t)
 				tags
 				;;
+			D)
+			    make_debian
+			    ;;
 		esac
 	done
 }

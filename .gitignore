@@ -7,3 +7,5 @@ include/hashmap
 *.o
 aur
 **/*\~
+deb
+*.deb

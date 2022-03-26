@@ -75,7 +75,7 @@ int hashmap_insert(hashmap_t *hashmap, const char *identifier, void *value) {
 // function returns NULL if the requested element is not found or if no hashing
 // algorithm is set
 void *hashmap_read(hashmap_t *hashmap, const char *identifier) {
-    if (hashmap->hash_func == NULL) {
+    if (hashmap == NULL || hashmap->hash_func == NULL) {
         return NULL;
     }
 

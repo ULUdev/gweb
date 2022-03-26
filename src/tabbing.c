@@ -119,7 +119,7 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
     char *uri = malloc(strlen(gtk_entry_get_text(entry)));
     strcpy(uri, gtk_entry_get_text(entry));
 
-    if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://")) {
+    if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://") && !strstartswith(uri, "file://")) {
 
         // dot in query. Probably a URL
         if (strchr(uri, '.')) {

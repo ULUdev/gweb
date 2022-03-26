@@ -1,6 +1,7 @@
 PREFIX = /usr/local
 CC = gcc
-CFLAGS = -std=c18 -Wall -Iinclude $(shell pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0) -O3
+CFLAGS = -std=c18 -Wall -Iinclude $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0) -O3
+LDFLAGS = $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0)
 SRC = $(wildcard src/*.c)
 FMT = clang-format
 FMTFLAGS = -i
@@ -9,7 +10,7 @@ OBJS = lib/linked_list.o lib/hashmap.o
 all: gweb
 
 gweb: $(SRC) $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
 
 lib/linked_list.o:
 	mkdir -p lib

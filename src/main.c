@@ -161,7 +161,9 @@ int main(int argc, char **argv) {
     g_signal_connect(G_OBJECT(window), "key-press-event",
                      G_CALLBACK(gweb_handle_key_press), shdata);
 
-    gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings, NULL);
+    if (linked_list_size(urls) == 0) {
+        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings, NULL);
+    }
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
         gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings, NULL);
@@ -182,9 +184,6 @@ int main(int argc, char **argv) {
                      NULL);
     gtk_container_add(GTK_CONTAINER(window), notebook);
 
-    // GtkAccelGroup *accels = gtk_accel_group_new();
-    // gtk_accel_group_connect(accels, gdk_keyval_from_name("t"),
-    // GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, G_CLOSURE())
     gtk_widget_show_all(window);
     gtk_widget_show(add_tab);
     gtk_main();
