@@ -81,6 +81,7 @@ int main(int argc, char **argv) {
     GtkWidget *window, *notebook;
     gtk_init(&argc, &argv);
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_default_size(GTK_WINDOW(window), 1200, 900);
     notebook = gtk_notebook_new();
     gweb_logger *logger = gweb_logger_new();
     gweb_set_log_level(logger, verbosity);
