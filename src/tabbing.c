@@ -59,6 +59,17 @@ typedef struct GwebLoadChangedUdata gweb_lc_udata;
 
 // Callbacks: {{{
 
+void gweb_handle_wv_mouse_target_changed(WebKitWebView *web_view, WebKitHitTestResult *test_result, guint modifiers, GtkLabel *user_data) {
+  assert(user_data != NULL);
+  if (webkit_hit_test_result_context_is_link(test_result)) {
+    char *uri = gweb_strdup(webkit_hit_test_result_get_link_uri(test_result));
+    gweb_strabbrev(uri, 53);
+    gtk_label_set_text(user_data, uri);
+  } else {
+    gtk_label_set_text(user_data, "");
+  }
+}
+
 bool gweb_handle_se_changed(GtkSearchEntry *self, WebKitWebView *user_data) {
     WebKitFindController *fctl = webkit_web_view_get_find_controller(user_data);
     webkit_find_controller_search(fctl, gtk_entry_get_text(GTK_ENTRY(self)),
@@ -293,10 +304,11 @@ void gweb_tabs_destroy(gweb_tabs_t *tabs) {
 GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                         const char *uri, gweb_webview_settings_t *settings,
                         WebKitWebView *related) {
-    GtkWidget *webview, *label, *hbox, *vbox, *entry, *tab_box, *tab_closebtn,
-        *tab_forward, *tab_back, *tab_reload, *load_pbar, *search_entry;
-    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
+    GtkWidget *webview, *label, *hbox, *hbox2, *vbox, *entry, *tab_box, *tab_closebtn,
+      *tab_forward, *tab_back, *tab_reload, *load_pbar, *search_entry, *hoverlabel;
+    hbox  = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
+    hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
+    vbox  = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
 
     tab_back = gtk_button_new_from_icon_name("go-previous-symbolic",
                                              GTK_ICON_SIZE_BUTTON);
@@ -306,6 +318,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     entry = gtk_entry_new();
     load_pbar = gtk_progress_bar_new();
     search_entry = gtk_search_entry_new();
+    hoverlabel = gtk_label_new("");
 
     if (related) {
         webview = webkit_web_view_new_with_related_view(related);
@@ -345,6 +358,8 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     g_signal_connect(G_OBJECT(search_entry), "previous-match",
                      G_CALLBACK(gweb_handle_se_prev), webview);
 
+    g_signal_connect(G_OBJECT(webview), "mouse-target-changed", G_CALLBACK(gweb_handle_wv_mouse_target_changed), hoverlabel);
+
     gtk_widget_set_tooltip_text(tab_back, "Back");
     gtk_widget_set_tooltip_text(tab_forward, "Forward");
     gtk_widget_set_tooltip_text(tab_reload, "Reload page");
@@ -356,7 +371,9 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), load_pbar, false, false, 1);
     gtk_box_pack_start(GTK_BOX(vbox), webview, true, true, 1);
-    gtk_box_pack_end(GTK_BOX(vbox), search_entry, false, false, 1);
+    gtk_box_pack_end(GTK_BOX(vbox), hbox2, false, false, 1);
+    gtk_box_pack_start(GTK_BOX(hbox2), search_entry, true, true, 1);
+    gtk_box_pack_end(GTK_BOX(hbox2), hoverlabel, true, true, 1);
 
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
 
@@ -436,6 +453,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                      G_CALLBACK(gweb_handle_webview_create), tab_remove_data);
     gtk_widget_show_all(vbox);
     gtk_widget_show_all(hbox);
+    gtk_widget_show_all(hbox2);
     gtk_widget_show_all(tab_box);
 
     gtk_notebook_set_current_page(notebook, res);

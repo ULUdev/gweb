@@ -11,4 +11,6 @@ void gweb_strstriptw(char *str);
 void gweb_strstriplw(char *str);
 void gweb_strstripltw(char *str);
 char *gweb_astrstripltw(const char *str);
+void gweb_strabbrev(char *str, const int length);
+char *gweb_straabbrev(const char *str, const int length);
 #endif

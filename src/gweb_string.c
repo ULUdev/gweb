@@ -147,3 +147,20 @@ char *gweb_strdup(const char *str) {
     strcpy(dup, str);
     return dup;
 }
+
+/*
+ * abbreviate str to length and add '...' to it if it is to long
+ */
+void gweb_strabbrev(char *str, const int length) {
+  if (strlen(str) > length && length >= 3) {
+    str[length-3] = '.';
+    str[length-2] = '.';
+    str[length-1] = '.';
+    str[length] = '\0';
+  }
+}
+char *gweb_straabbrev(const char *str, const int length) {
+  char *new_str = gweb_strdup(str);
+  gweb_strabbrev(new_str, length);
+  return new_str;
+}
