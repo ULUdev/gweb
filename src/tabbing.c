@@ -59,15 +59,18 @@ typedef struct GwebLoadChangedUdata gweb_lc_udata;
 
 // Callbacks: {{{
 
-void gweb_handle_wv_mouse_target_changed(WebKitWebView *web_view, WebKitHitTestResult *test_result, guint modifiers, GtkLabel *user_data) {
-  assert(user_data != NULL);
-  if (webkit_hit_test_result_context_is_link(test_result)) {
-    char *uri = gweb_strdup(webkit_hit_test_result_get_link_uri(test_result));
-    gweb_strabbrev(uri, 53);
-    gtk_label_set_text(user_data, uri);
-  } else {
-    gtk_label_set_text(user_data, "");
-  }
+void gweb_handle_wv_mouse_target_changed(WebKitWebView *web_view,
+                                         WebKitHitTestResult *test_result,
+                                         guint modifiers, GtkLabel *user_data) {
+    assert(user_data != NULL);
+    if (webkit_hit_test_result_context_is_link(test_result)) {
+        char *uri =
+            gweb_strdup(webkit_hit_test_result_get_link_uri(test_result));
+        gweb_strabbrev(uri, 53);
+        gtk_label_set_text(user_data, uri);
+    } else {
+        gtk_label_set_text(user_data, "");
+    }
 }
 
 bool gweb_handle_se_changed(GtkSearchEntry *self, WebKitWebView *user_data) {
@@ -130,7 +133,8 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
     char *uri = malloc(strlen(gtk_entry_get_text(entry)));
     strcpy(uri, gtk_entry_get_text(entry));
 
-    if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://") && !strstartswith(uri, "file://")) {
+    if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://") &&
+        !strstartswith(uri, "file://")) {
 
         // dot in query. Probably a URL
         if (strchr(uri, '.')) {
@@ -304,11 +308,12 @@ void gweb_tabs_destroy(gweb_tabs_t *tabs) {
 GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                         const char *uri, gweb_webview_settings_t *settings,
                         WebKitWebView *related) {
-    GtkWidget *webview, *label, *hbox, *hbox2, *vbox, *entry, *tab_box, *tab_closebtn,
-      *tab_forward, *tab_back, *tab_reload, *load_pbar, *search_entry, *hoverlabel;
-    hbox  = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
+    GtkWidget *webview, *label, *hbox, *hbox2, *vbox, *entry, *tab_box,
+        *tab_closebtn, *tab_forward, *tab_back, *tab_reload, *load_pbar,
+        *search_entry, *hoverlabel;
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
     hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
-    vbox  = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
 
     tab_back = gtk_button_new_from_icon_name("go-previous-symbolic",
                                              GTK_ICON_SIZE_BUTTON);
@@ -358,7 +363,9 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     g_signal_connect(G_OBJECT(search_entry), "previous-match",
                      G_CALLBACK(gweb_handle_se_prev), webview);
 
-    g_signal_connect(G_OBJECT(webview), "mouse-target-changed", G_CALLBACK(gweb_handle_wv_mouse_target_changed), hoverlabel);
+    g_signal_connect(G_OBJECT(webview), "mouse-target-changed",
+                     G_CALLBACK(gweb_handle_wv_mouse_target_changed),
+                     hoverlabel);
 
     gtk_widget_set_tooltip_text(tab_back, "Back");
     gtk_widget_set_tooltip_text(tab_forward, "Forward");

@@ -16,11 +16,11 @@
 
 // library version
 #define GWEB_VERSION_MAJOR 1
-#define GWEB_VERSION_MINOR 3
-#define GWEB_VERSION_PATCH 5
+#define GWEB_VERSION_MINOR 4
+#define GWEB_VERSION_PATCH 6
 
 // version string for commandline and packaging purposes
-#define GWEB_VERSION_STR "1.3.6"
+#define GWEB_VERSION_STR "1.4.6"
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
 
 const char *GWEB_HELP_STR =
@@ -163,7 +163,8 @@ int main(int argc, char **argv) {
                      G_CALLBACK(gweb_handle_key_press), shdata);
 
     if (linked_list_size(urls) == 0) {
-        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings, NULL);
+        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, new_tab_url, websettings,
+                     NULL);
     }
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
