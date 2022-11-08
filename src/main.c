@@ -1,8 +1,8 @@
 #include "config.h"
 #include "gweb_string.h"
-#include "hashmap/hashmap.h"
+#include "hashmap.h"
 #include "keyb.h"
-#include "linked_list/linked_list.h"
+#include "linked_list.h"
 #include "log.h"
 #include "tabbing.h"
 #include <gtk/gtk.h>

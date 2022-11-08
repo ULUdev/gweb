@@ -33,6 +33,7 @@ struct GwebLoadChangedUdata {
     WebKitWebView *webview;
     GtkLabel *label;
     GtkProgressBar *pbar;
+    GtkImage *icon;
 };
 
 struct GwebWebviewSettings {
@@ -130,7 +131,7 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
     assert(user_data->tab_widget != NULL);
     assert(user_data->webview != NULL);
 
-    char *uri = malloc(strlen(gtk_entry_get_text(entry)));
+    char *uri = malloc(strlen(gtk_entry_get_text(entry))+1);
     strcpy(uri, gtk_entry_get_text(entry));
 
     if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://") &&
@@ -141,7 +142,9 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
             uri = realloc(uri, strlen(uri) + 7 + 1);
             char *tmp = malloc(strlen(uri) + 7 + 1);
             strcpy(tmp, "http://");
-            uri = strcat(tmp, uri);
+            tmp = strcat(tmp, uri);
+	    strcpy(uri, tmp);
+	    free(tmp);
         } else {
             /*
              * treat as search
@@ -203,6 +206,23 @@ void gweb_remove_tab_callback(GtkButton *btn, struct TabRemoveData *user_data) {
     free(user_data);
 }
 
+void gweb_favicon_load_arcb(GObject *fdb, GAsyncResult *res, void *user_data) {
+  assert(((gweb_lc_udata*)user_data)->icon != NULL);
+  // we want to handle the error if one occurs
+  GError *err = NULL;
+  cairo_surface_t *favicon = webkit_favicon_database_get_favicon_finish(WEBKIT_FAVICON_DATABASE(fdb), res, &err);
+
+  if (favicon) {
+    gtk_image_set_from_surface(((gweb_lc_udata*)user_data)->icon, favicon);
+  } else {
+    if (err == NULL) {
+      printf("[ERROR] failed to load favicon: unknown\n");
+    } else {
+      printf("[ERROR] failed to load favicon: [%d] %s\n", err->code, err->message);
+    }
+  }
+}
+
 void gweb_handle_load_changed(WebKitWebView *web_view,
                               WebKitLoadEvent load_event,
                               gweb_lc_udata *user_data) {
@@ -212,13 +232,18 @@ void gweb_handle_load_changed(WebKitWebView *web_view,
     assert(user_data->tab_widget != NULL);
     assert(user_data->label != NULL);
     assert(user_data->pbar != NULL);
+    assert(user_data->icon != NULL);
     gtk_entry_set_text(user_data->entry, webkit_web_view_get_uri(web_view));
 
     gtk_widget_show(GTK_WIDGET(user_data->pbar));
     gtk_progress_bar_set_fraction(
         user_data->pbar, webkit_web_view_get_estimated_load_progress(web_view));
+
+    WebKitFaviconDatabase *fdb = webkit_web_context_get_favicon_database(webkit_web_view_get_context(web_view));
     if (load_event == WEBKIT_LOAD_FINISHED) {
+
         gtk_widget_hide(GTK_WIDGET(user_data->pbar));
+
         char *title = (char *)webkit_web_view_get_title(web_view);
         if (title == NULL) {
             title = malloc(strlen(GWEB_NEW_TAB) + 1);
@@ -240,11 +265,19 @@ void gweb_handle_load_changed(WebKitWebView *web_view,
             new_title[22] = '\0';
             title = new_title;
         }
+
+	webkit_favicon_database_get_favicon(fdb, webkit_web_view_get_uri(web_view), NULL, gweb_favicon_load_arcb, user_data);
         gtk_label_set_label(user_data->label, title);
-        // gtk_label_set_label(user_data->label,
-        // webkit_web_view_get_title(web_view));
         free(title);
     }
+}
+
+void gweb_favicon_avail(WebKitWebView *web_view, void *user_data) {
+  cairo_surface_t *surface = webkit_web_view_get_favicon(web_view);
+  if (surface == NULL) {
+    printf("favicon surface is null!\n");
+  }
+  gtk_image_set_from_surface((GtkImage *)user_data, surface);
 }
 
 // }}}
@@ -310,10 +343,11 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                         WebKitWebView *related) {
     GtkWidget *webview, *label, *hbox, *hbox2, *vbox, *entry, *tab_box,
         *tab_closebtn, *tab_forward, *tab_back, *tab_reload, *load_pbar,
-        *search_entry, *hoverlabel;
+      *search_entry, *hoverlabel, *icon;
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
     hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, GWEB_BOX_SPACING);
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, GWEB_BOX_SPACING);
+    icon = gtk_image_new();
 
     tab_back = gtk_button_new_from_icon_name("go-previous-symbolic",
                                              GTK_ICON_SIZE_BUTTON);
@@ -388,6 +422,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     tab_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
     tab_closebtn =
         gtk_button_new_from_icon_name("tab-close", GTK_ICON_SIZE_BUTTON);
+    gtk_box_pack_start(GTK_BOX(tab_box), GTK_WIDGET(icon), true, true, 0);
     gtk_box_pack_start(GTK_BOX(tab_box), GTK_WIDGET(label), true, true, 0);
     gtk_box_pack_end(GTK_BOX(tab_box), GTK_WIDGET(tab_closebtn), false, false,
                      0);
@@ -401,7 +436,13 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
     data->webview = WEBKIT_WEB_VIEW(webview);
     data->label = GTK_LABEL(label);
     data->pbar = GTK_PROGRESS_BAR(load_pbar);
+    data->icon = GTK_IMAGE(icon);
 
+
+    // initalize favicon db
+    webkit_web_context_set_favicon_database_directory(webkit_web_view_get_context(WEBKIT_WEB_VIEW(webview)),
+						      g_build_filename(g_get_user_data_dir(), "gweb", NULL));
+    
     gweb_tab_t *new = malloc(sizeof(gweb_tab_t));
     new->data = data;
     new->next = NULL;
@@ -458,6 +499,7 @@ GtkWidget *gweb_add_tab(GtkNotebook *notebook, gweb_tabs_t *tabs,
                      G_CALLBACK(gweb_remove_tab_callback), tab_remove_data);
     g_signal_connect(G_OBJECT(webview), "create",
                      G_CALLBACK(gweb_handle_webview_create), tab_remove_data);
+    // g_signal_connect(G_OBJECT(webview), "notify::favicon", G_CALLBACK(gweb_favicon_avail), icon);
     gtk_widget_show_all(vbox);
     gtk_widget_show_all(hbox);
     gtk_widget_show_all(hbox2);

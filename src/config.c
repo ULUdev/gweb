@@ -1,7 +1,7 @@
 #include "config.h"
 #include "gweb_string.h"
-#include "hashmap/hash.h"
-#include "hashmap/hashmap.h"
+#include "hash.h"
+#include "hashmap.h"
 #include "log.h"
 #include <stdio.h>
 #include <string.h>

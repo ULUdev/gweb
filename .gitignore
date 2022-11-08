@@ -1,6 +1,7 @@
 tags
 gweb
 compilelog.txt
+compile_commands.json
 lib
 include/linked_list
 include/hashmap
@@ -9,3 +10,4 @@ aur
 **/*\~
 deb
 *.deb
+.cache

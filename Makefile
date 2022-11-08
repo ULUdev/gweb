@@ -1,6 +1,6 @@
 PREFIX = /usr/local
 CC = gcc
-CFLAGS = -std=c18 -Wall -Iinclude $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0) -O3
+CFLAGS = -std=c18 -Wall -Iinclude -Ihashmap/include -Ilinked_list/include $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0) -ggdb
 LDFLAGS = $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0)
 SRC = $(wildcard src/*.c)
 FMT = clang-format
@@ -14,15 +14,12 @@ gweb: $(SRC) $(OBJS)
 
 lib/linked_list.o:
 	mkdir -p lib
-	mkdir -p include/linked_list
 	$(MAKE) -C linked_list
-	cp linked_list/include/* include/linked_list/
 	mv linked_list/linked_list.o lib/linked_list.o
 
 lib/hashmap.o:
-	mkdir -p lib include/hashmap
+	mkdir -p lib
 	$(MAKE) -C hashmap
-	cp hashmap/include/* include/hashmap/
 	mv hashmap/hashmap.o lib/hashmap.o
 
 install: gweb

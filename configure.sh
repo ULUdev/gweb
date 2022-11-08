@@ -26,7 +26,6 @@ version() {
 set_prefix() {
 	log "setting prefixes"
 	cat Makefile | sed "s/^PREFIX = .*$/PREFIX = $(echo "$1" | sed 's/\//\\\//g')/" > Makefile
-	cat gweb.desktop | sed "s/^Exec=.*$/Exec=$(echo "$1" | sed 's/\//\\\//g')\/bin\/gweb %u/" > gweb.desktop
 	log "done"
 }
 

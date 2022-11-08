@@ -4,5 +4,5 @@ Name=Gweb
 Type=Application
 GenericName=Web Browser
 Comment=Browse the World Wide Web
-Exec=/usr/local/bin/gweb %u
+Exec=/usr/bin/gweb %u
 Icon=gweb

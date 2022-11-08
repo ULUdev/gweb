@@ -1,6 +1,6 @@
 #ifndef __GWEB_STRING_H__
 #define __GWEB_STRING_H__
-#include "linked_list/linked_list.h"
+#include "linked_list.h"
 int gweb_streq(const char *s1, const char *s2);
 int gweb_strstartswith(const char *s1, const char *s2);
 char *gweb_get_homedir();

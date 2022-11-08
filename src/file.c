@@ -1,6 +1,6 @@
 #include "file.h"
 #include "gweb_string.h"
-#include "linked_list/linked_list.h"
+#include "linked_list.h"
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
