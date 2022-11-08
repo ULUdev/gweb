@@ -7,5 +7,5 @@
 #include <webkit2/webkit2.h>
 #include "log.h"
 
-void gweb_load_filter_list(const char *file_name, WebKitWebView *web_view, gweb_logger *logger);
+void gweb_load_filter_list(const char *file_name, WebKitWebView *web_view);
 #endif

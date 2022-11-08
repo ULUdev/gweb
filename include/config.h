@@ -3,7 +3,7 @@
 #include "hashmap.h"
 #include "log.h"
 
-hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger);
+hashmap_t *gweb_parse_config(const char *filename);
 
 int gweb_parse_bool_str(const char *str);
 

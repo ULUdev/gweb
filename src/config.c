@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void gweb_config_process_line(const char *line, hashmap_t *hashmap,
-                              gweb_logger *logger) {
+void gweb_config_process_line(const char *line, hashmap_t *hashmap) {
 
     char *ident, *value;
     ident = malloc(strlen(line) + 1);
@@ -45,28 +44,25 @@ void gweb_config_process_line(const char *line, hashmap_t *hashmap,
     int res = hashmap_insert(hashmap, ident, (void *)value);
     if (res != 0) {
         if (res == 1) {
-            gweb_log(logger, "failed to add item to hashmap (hashmap is full)",
-                     GWEB_LOG_WARN);
+            gweb_log_wrn("failed to add item to hashmap (hashmap is full)");
         } else if (res == -1) {
-            gweb_log(logger,
-                     "failed to add item to hashmap (no hash function is set)",
-                     GWEB_LOG_WARN);
+            gweb_log_wrn(
+                "failed to add item to hashmap (no hash function is set)");
         } else {
-            gweb_log(logger, "failed to add item to hashmap (unkown reason)",
-                     GWEB_LOG_WARN);
+            gweb_log_wrn("failed to add item to hashmap (unkown reason)");
         }
         free(ident);
         free(value);
     }
 }
 
-hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
-    gweb_log(logger, "parsing configuration file", GWEB_LOG_MSG);
+hashmap_t *gweb_parse_config(const char *filename) {
+    gweb_log_msg("parsing configuration file");
     FILE *file = fopen(filename, "r");
 
     // file opening failed
     if (file == NULL) {
-        gweb_log(logger, "failed to open configuration file", GWEB_LOG_WARN);
+        gweb_log_wrn("failed to open configuration file");
         return NULL;
     }
 
@@ -101,7 +97,7 @@ hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
             tmp[0] = buffer;
             tmp[1] = '\0';
             line = strcat(line, tmp);
-            gweb_config_process_line(line, hashmap, logger);
+            gweb_config_process_line(line, hashmap);
             strcpy(line, "");
         } else {
             tmp[0] = buffer;
@@ -113,7 +109,7 @@ hashmap_t *gweb_parse_config(const char *filename, gweb_logger *logger) {
     }
     free(tmp);
     if (strlen(line) > 0) {
-        gweb_config_process_line(line, hashmap, logger);
+        gweb_config_process_line(line, hashmap);
     }
 
     fclose(file);

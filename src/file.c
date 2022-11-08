@@ -1,6 +1,7 @@
 #include "file.h"
 #include "gweb_string.h"
 #include "linked_list.h"
+#include "log.h"
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
@@ -22,7 +23,7 @@ int gweb_direxists(const char *dirpath) {
     } else if (ENOENT == errno) {
         return 1;
     } else {
-        fprintf(stderr, "failed to access directory for unkown reason!\n");
+        gweb_log_err("failed to access directory for unkown reason!");
         return 2;
     }
 }
@@ -46,7 +47,7 @@ char *gweb_cookie_file() {
     }
     free(cookiedir);
     if (result != 0) {
-        fprintf(stderr, "failed to create cookiedir\n");
+        gweb_log_err("failed to create cookiedir");
         return NULL;
     }
     return cookiefile;
