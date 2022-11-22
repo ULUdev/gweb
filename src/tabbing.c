@@ -207,12 +207,13 @@ void gweb_favicon_load_arcb(GObject *fdb, GAsyncResult *res, void *user_data) {
         WEBKIT_FAVICON_DATABASE(fdb), res, &err);
 
     if (favicon) {
+        gweb_log_dbg("loaded favicon");
         gtk_image_set_from_surface(((gweb_lc_udata *)user_data)->icon, favicon);
     } else {
-        if (err == NULL) {
-            gweb_log_err("failed to load favicon: unknown");
+        if (!err) {
+            gweb_log_wrn("failed to load favicon: unknown");
         } else {
-            gweb_log_err("failed to load favicon: [%d] %s", err->code,
+            gweb_log_wrn("failed to load favicon: [%d] %s", err->code,
                          err->message);
         }
     }
@@ -262,6 +263,11 @@ void gweb_handle_load_changed(WebKitWebView *web_view,
             title = new_title;
         }
 
+        gweb_log_msg("loading favicon for %s",
+                     webkit_web_view_get_uri(web_view));
+        gweb_log_dbg("favicon to load: %s",
+                     webkit_favicon_database_get_favicon_uri(
+                         fdb, webkit_web_view_get_uri(web_view)));
         webkit_favicon_database_get_favicon(
             fdb, webkit_web_view_get_uri(web_view), NULL,
             gweb_favicon_load_arcb, user_data);
@@ -270,14 +276,6 @@ void gweb_handle_load_changed(WebKitWebView *web_view,
                      webkit_web_view_get_uri(web_view));
         free(title);
     }
-}
-
-void gweb_favicon_avail(WebKitWebView *web_view, void *user_data) {
-    cairo_surface_t *surface = webkit_web_view_get_favicon(web_view);
-    if (surface == NULL) {
-        gweb_log_wrn("favicon surface is null");
-    }
-    gtk_image_set_from_surface((GtkImage *)user_data, surface);
 }
 
 // }}}

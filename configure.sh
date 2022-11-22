@@ -34,6 +34,7 @@ make_release() {
 	echo "$(sed 's/-ggdb/-O3/' Makefile)" > Makefile
 	echo "$(sed 's/-ggdb/-O3/' linked_list/Makefile)" > linked_list/Makefile
 	echo "$(sed 's/-ggdb/-O3/' hashmap/Makefile)" > hashmap/Makefile
+	echo "$(sed 's/-DGWEB_LOG_DEBUG//' Makefile)" > Makefile
 	log "done"
 }
 
@@ -42,6 +43,7 @@ make_debug() {
 	echo "$(sed 's/-O3/-ggdb/' Makefile)" > Makefile
 	echo "$(sed 's/-O3/-ggdb/' linked_list/Makefile)" > linked_list/Makefile
 	echo "$(sed 's/-O3/-ggdb/' hashmap/Makefile)" > hashmap/Makefile
+	echo "$(sed 's/CFLAGS =/CFLAGS = -DGWEB_LOG_DEBUG/' Makefile)" > Makefile
 	log "done"
 }
 

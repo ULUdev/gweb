@@ -33,7 +33,8 @@ static void gweb_handle_finish(WebKitUserContentFilterStore *store,
                                                                &error);
     if (filter == NULL) {
         if (error != NULL) {
-            gweb_log_wrn("failed to compile filter file [%d]: %s", error->code, error->message);
+            gweb_log_wrn("failed to compile filter file [%d]: %s", error->code,
+                         error->message);
         } else {
             gweb_log_wrn("failed to compile filter file");
         }

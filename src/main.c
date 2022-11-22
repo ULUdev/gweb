@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
         } else if (streq(argv[i], "--nodev")) {
             dev_tools = false;
         } else if (streq(argv[i], "-h") || streq(argv[i], "--help")) {
-            fprintf(stderr, GWEB_HELP_STR);
+            fprintf(stderr, "%s", GWEB_HELP_STR);
             exit(0);
         } else if (streq(argv[i], "--noconf")) {
             use_config = false;
