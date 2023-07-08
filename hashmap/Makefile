@@ -1,11 +1,28 @@
 CC = gcc
-CFLAGS = -c -std=c18 -Wall -Iinclude -O3
-SRC = src/hashmap.c
+CFLAGS = -c -fPIC -std=c18 -Wall -Iinclude -O3
+AR = ar
+ARFLAGS = -crs
+SRC = $(wildcard src/*.c)
 
-all: hashmap.o
+.PHONY: all clean
 
-hashmap.o: $(SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+all: libhashmap.a
+
+%.o: %.c
+ifeq ($(COMPACT_OUTPUT),1)
+	@echo CC $@
+	@$(CC) $^ $(CFLAGS) -o $@
+else
+	$(CC) $^ $(CFLAGS) -o $@
+endif
+
+libhashmap.a: $(SRC:.c=.o)
+ifeq ($(COMPACT_OUTPUT),1)
+	@echo AR $@
+	@$(AR) $(ARFLAGS) $@ $^
+else
+	$(AR) $(ARFLAGS) $@ $^
+endif
 
 clean:
-	rm -rf hashmap.o
+	rm -rf libhashmap.a

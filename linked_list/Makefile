@@ -1,11 +1,27 @@
 CC = gcc
-CFLAGS = -c -Wall -Iinclude -o linked_list.o -O3 -std=c18
+CFLAGS = -c -fPIC -Wall -Iinclude -O3 -std=c18
+ARFLAGS = -crs
 SRC = $(wildcard src/*.c)
 
-all: linked_list.o
+.PHONY: all clean
 
-linked_list.o:
-	$(CC) $(CFLAGS) $(SRC)
+all: liblinked_list.a
+
+liblinked_list.a: $(SRC:.c=.o)
+ifeq ($(COMPACT_OUTPUT),1)
+	@echo AR $@
+	@$(AR) $(ARFLAGS) $@ $^
+else
+	$(AR) $(ARFLAGS) $@ $^
+endif
+
+%.o: %.c
+ifeq ($(COMPACT_OUTPUT),1)
+	@echo CC $@
+	@$(CC) $^ $(CFLAGS) -o $@
+else
+	$(CC) $^ $(CFLAGS) -o $@
+endif
 
 clean:
-	rm -rf linked_list.o
+	rm -rf liblinked_list.a $(SRC:.c=.o)

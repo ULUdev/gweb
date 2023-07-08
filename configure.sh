@@ -31,18 +31,18 @@ set_prefix() {
 
 make_release() {
 	log "configuring makefile (release)..."
-	echo "$(sed 's/-ggdb/-O3/' Makefile)" > Makefile
-	echo "$(sed 's/-ggdb/-O3/' linked_list/Makefile)" > linked_list/Makefile
-	echo "$(sed 's/-ggdb/-O3/' hashmap/Makefile)" > hashmap/Makefile
+	echo "$(sed 's/-g3/-O3/' Makefile)" > Makefile
+	echo "$(sed 's/-g3/-O3/' linked_list/Makefile)" > linked_list/Makefile
+	echo "$(sed 's/-g3/-O3/' hashmap/Makefile)" > hashmap/Makefile
 	echo "$(sed 's/-DGWEB_LOG_DEBUG//' Makefile)" > Makefile
 	log "done"
 }
 
 make_debug() {
 	log "configuring makefile (debug)..."
-	echo "$(sed 's/-O3/-ggdb/' Makefile)" > Makefile
-	echo "$(sed 's/-O3/-ggdb/' linked_list/Makefile)" > linked_list/Makefile
-	echo "$(sed 's/-O3/-ggdb/' hashmap/Makefile)" > hashmap/Makefile
+	echo "$(sed 's/-O3/-g3/' Makefile)" > Makefile
+	echo "$(sed 's/-O3/-g3/' linked_list/Makefile)" > linked_list/Makefile
+	echo "$(sed 's/-O3/-g3/' hashmap/Makefile)" > hashmap/Makefile
 	echo "$(sed 's/CFLAGS =/CFLAGS = -DGWEB_LOG_DEBUG/' Makefile)" > Makefile
 	log "done"
 }
@@ -55,6 +55,11 @@ make_debian() {
     cp control "$PWD/deb/DEBIAN/control"
     log "done"
     
+}
+
+set_compact_output() {
+    log "setting compact output to $1..."
+    sed -i "s/^COMPACT_OUTPUT ?=.*$/COMPACT_OUTPUT ?= $1/" Makefile
 }
 
 tags() {
@@ -75,6 +80,7 @@ OPTIONS
   -d: make makefile act in debug mode
   -t: generate tags for development (also done with -d)
   -D: prepare for debian packaging
+  -c <compact>: set the compactness of the output to <compact> (either 0 or 1)
 " >&2
 }
 
@@ -82,7 +88,7 @@ main() {
 	local opts;
 	check_deps
 	set -e
-	while getopts "htgp:rdD" opts; do
+	while getopts "htgp:rdDc:" opts; do
 		case $opts in
 			h)
 				print_help
@@ -109,6 +115,9 @@ main() {
 			D)
 			    make_debian
 			    ;;
+            c)
+                set_compact_output "$OPTARG"
+                ;;
 		esac
 	done
 }

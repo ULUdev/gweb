@@ -16,6 +16,9 @@ If you want to adjust the prefix use `./configure.sh -p <prefix>`.  For release
 settings use `./configure.sh -r`. This will remove all debugging flags from the
 compiler and add optimization Just run `make install`. If you want to change
 other build settings edit the `Makefile`
+### More compact build messages
+If you wan't to have a more compact output from `make` run every `make` command
+as `COMPACT_OUTPUT=1 make <options>`.
 
 ## Usage
 Simply running `gweb` will start the browser. Currently the options are:
@@ -35,3 +38,22 @@ The default verbosity level is 0 meaning only error events of `gweb` are logged
 logged. The highest currently supported logging level is 2 meaning everything
 gets logged. This level is used to log important activity conducted by `gweb`
 including creation of tabs, allocation and deallocation of memory and more.
+
+## Contributing
+If you wish to contribute to this project feel free to do so. The open issues
+are found mostly on a private GitLab instance
+[here](https://gitlab.sokoll.com/moritz/gweb/issues). Contribute by making a
+pull request at either [GitHub](https://github.com/ULUdev/gweb) or
+[codeberg](https://codeberg.org/UwUdev/gweb).
+### Code formatting and such
+The Makefile has a target for formatting. Just run `make format` which will
+format most of the components. If you add some that aren't recognized modify
+the makefile accordingly. In general, the Makefile should work for most things
+already. Simply adding a file in the `include` or `src` directories will
+automatically be picked up by it.
+### Configuring your environment
+The `configure.sh` script has a flag `-d`. This will automatically update the
+makefile to compile everything with debug flags. I personally debug everything
+with `gdb` so it will be optimized for use with that. If you want the detailed
+compiler output run `./configure.sh -c 0` or run every make command as
+`COMPACT_OUTPUT=0 make <options>` to disable compact output for everything.

@@ -1,5 +1,5 @@
 #include "hashmap.h"
-#include "hash.c"
+#include <string.h>
 #include <stdlib.h>
 
 int streq(const char *s1, const char *s2) {
