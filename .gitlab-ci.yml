@@ -4,21 +4,19 @@ before_script:
   - apt-get update
   - apt-get install libgtk-3-dev -y
   - apt-get install libwebkit2gtk-4.0-dev -y
+  - apt-get install meson -y
 
 cache:
   paths:
-    - gweb
+    - build
 
 build:
   stage: build
   script:
-    - make -B
-  tags:
-    - x86_64
+    - meson setup build .
+    - meson compile -C build
 
 test:
   stage: test
   script:
-    - ./test.sh
-  tags:
-    - x86_64
+    - meson test -C build

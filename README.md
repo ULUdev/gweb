@@ -5,20 +5,27 @@
 ### From the AUR
 `gweb` has a version in the aur. You can install that one. It will be configured
 with `./configure.sh -r` and prefixed to `/usr`.
+### From source
+To change the install prefix use `meson setup build . --buildtype=release --prefix=<prefix>`. If
+you don't care about installing you can skip the `--prefix` flag. It is
+recommended to also add the flag `--default-library=static` to ensure that the
+dependencies included in this repository are built as static libraries. There
+is currently no known application to also use these dependencies.
+
+When you have done that you can just run `meson compile -C build`. This will
+place the resulting binary in `build`.
+
+If you wan't to install the program use `meson install -C build`.
 ### For Debian based distributions
+**WARNING: With the new meson build configuration we have no currently maintained way of packaging for debian**
+If you want to package it anyway use the steps from the old commit (latest one
+being 4cf5477f6ab474be6aa2d7fdb005224e67f9947a)
+
 If you are on a Debian based distribution of Linux your steps will look like this:
 1. `./configure.sh -D`: prepare the repository for Debian packaging
 2. `make install`: move the necessary files into the package directory (no root access required)
 3. `./debian.sh`: build the actual package (make sure that `libgtk-3-0` and `libwebkit2gtk-4.0-37` are installed)
 4. `dpkg -i gweb.deb`: install the Debian package (requires root access)
-### From source
-If you want to adjust the prefix use `./configure.sh -p <prefix>`.  For release
-settings use `./configure.sh -r`. This will remove all debugging flags from the
-compiler and add optimization Just run `make install`. If you want to change
-other build settings edit the `Makefile`
-### More compact build messages
-If you wan't to have a more compact output from `make` run every `make` command
-as `COMPACT_OUTPUT=1 make <options>`.
 
 ## Usage
 Simply running `gweb` will start the browser. Currently the options are:
@@ -46,14 +53,12 @@ are found mostly on a private GitLab instance
 pull request at either [GitHub](https://github.com/ULUdev/gweb) or
 [codeberg](https://codeberg.org/UwUdev/gweb).
 ### Code formatting and such
-The Makefile has a target for formatting. Just run `make format` which will
-format most of the components. If you add some that aren't recognized modify
-the makefile accordingly. In general, the Makefile should work for most things
-already. Simply adding a file in the `include` or `src` directories will
-automatically be picked up by it.
-### Configuring your environment
-The `configure.sh` script has a flag `-d`. This will automatically update the
-makefile to compile everything with debug flags. I personally debug everything
-with `gdb` so it will be optimized for use with that. If you want the detailed
-compiler output run `./configure.sh -c 0` or run every make command as
-`COMPACT_OUTPUT=0 make <options>` to disable compact output for everything.
+This project uses meson and meson allows you to use the following command to
+format your source code: `ninja -C build clang-format`.
+
+If you add or remove a file you should modify the `meson.build` in the
+directory accordingly.
+
+If you wish to add tests do so in a directory called `test`. There you can
+place your unit tests and write a simple `meson.build` file to generate these
+unit tests. Then use `meson test -C build`.
