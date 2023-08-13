@@ -2,13 +2,17 @@
 #include "file.h"
 #include "gweb_string.h"
 #include "log.h"
+#include "url.h"
 #include "resourceblock.h"
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <webkit2/webkit2.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #define strstartswith(s1, s2) (gweb_strstartswith(s1, s2) == 0)
 #define GWEB_NEW_TAB "New Tab"
@@ -132,14 +136,13 @@ void gweb_entry_enter(GtkEntry *entry, gweb_lc_udata *user_data) {
     if (!strstartswith(uri, "http://") && !strstartswith(uri, "https://") &&
         !strstartswith(uri, "file://")) {
 
-        // dot in query. Probably a URL
+        // file with this name exists locally
         if (strchr(uri, '.')) {
-            uri = realloc(uri, strlen(uri) + 7 + 1);
-            char *tmp = malloc(strlen(uri) + 7 + 1);
-            strcpy(tmp, "http://");
-            tmp = strcat(tmp, uri);
-            strcpy(uri, tmp);
-            free(tmp);
+            char *tmp = process_url(uri);
+            if (tmp != uri) {
+                free(uri);
+                uri = tmp;
+            }
         } else {
             /*
              * treat as search
@@ -289,7 +292,7 @@ gweb_tabs_t *gweb_tabs_new() {
 }
 
 void gweb_remove_tab(gweb_tabs_t *tabs, GtkNotebook *notebook, int page_num) {
-    if (tabs->count == 0) {
+    if (tabs->count == 0 || page_num < 0) {
         return;
     } else if (tabs->count == 1) {
         gtk_main_quit();

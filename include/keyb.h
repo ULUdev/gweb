@@ -7,12 +7,13 @@
 #include "stdbool.h"
 
 typedef struct {
-  gweb_tabs_t *tabs;
-  GtkNotebook *notebook;
-  gweb_webview_settings_t *settings;
-  char *uri;
+    gweb_tabs_t *tabs;
+    GtkNotebook *notebook;
+    gweb_webview_settings_t *settings;
+    char *uri;
 } gweb_shortcut_data_t;
 
-bool gweb_handle_key_press(GtkWidget *widget, GdkEvent *event, gweb_shortcut_data_t *udata);
+bool gweb_handle_key_press(GtkWidget *widget, GdkEvent *event,
+                           gweb_shortcut_data_t *udata);
 
 #endif

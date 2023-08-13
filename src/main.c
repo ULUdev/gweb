@@ -5,6 +5,7 @@
 #include "linked_list.h"
 #include "log.h"
 #include "tabbing.h"
+#include "url.h"
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -16,7 +17,7 @@
 
 // library version
 #define GWEB_VERSION_MAJOR 1
-#define GWEB_VERSION_MINOR 5
+#define GWEB_VERSION_MINOR 6
 #define GWEB_VERSION_PATCH 7
 
 #define streq(s1, s2) (gweb_streq(s1, s2) == 0)
@@ -154,7 +155,11 @@ int main(int argc, char **argv) {
     }
     while (linked_list_size(urls) != 0) {
         char *url = linked_list_pop(urls);
-        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, url, websettings, NULL);
+        char *processed_url = process_url(url);
+        gweb_add_tab(GTK_NOTEBOOK(notebook), tabs, processed_url, websettings,
+                     NULL);
+        if (url != processed_url)
+            free(processed_url);
     }
     linked_list_destroy(urls);
     GtkWidget *add_tab =
